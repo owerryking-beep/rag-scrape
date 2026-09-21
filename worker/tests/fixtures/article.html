@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta property="og:site_name" content="TestSite" />
+  <meta property="og:title" content="Understanding RAG Pipelines" />
+  <title>Understanding RAG Pipelines — TestSite</title>
+</head>
+<body>
+  <nav class="navbar"><a href="/">Home</a> <a href="/about">About</a> <a href="/pricing">Pricing</a></nav>
+  <div class="ad advertisement"><a href="https://ads.example.com">Buy stuff now</a></div>
+  <header class="site-header"><span class="logo">TestSite</span></header>
+  <article>
+    <h1>Understanding RAG Pipelines</h1>
+    <p class="byline">By Jane Doe</p>
+    <p>Published on <time datetime="2026-08-01">August 1, 2026</time>.</p>
+    <p>
+      Retrieval-Augmented Generation (RAG) combines a <strong>vector database</strong>
+      with a large language model. This is a <em>simple</em> paragraph with
+      <a href="/blog/links">a relative link</a> and an
+      <a href="https://external.example.com/page">absolute link</a>.
+    </p>
+    <h2>How it works</h2>
+    <p>See the diagram:</p>
+    <figure>
+      <img src="/img/pipeline.png" alt="RAG pipeline diagram" />
+      <figcaption>The RAG pipeline at a glance.</figcaption>
+    </figure>
+    <p>The pipeline runs in three stages:</p>
+    <ol>
+      <li>Chunk the document
+        <ul>
+          <li>By tokens</li>
+          <li>By paragraphs</li>
+        </ul>
+      </li>
+      <li>Embed the chunks</li>
+      <li>Retrieve at query time</li>
+    </ol>
+    <h2>Key components</h2>
+    <table>
+      <thead>
+        <tr><th>Component</th><th>Role</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Embedder</td><td>Turns text into vectors</td></tr>
+        <tr><td>Vector DB</td><td>Stores and searches vectors</td></tr>
+      </tbody>
+    </table>
+    <h2>Example code</h2>
+    <pre><code class="language-python">def chunk(text, size=512):
+    return [text[i:i + size] for i in range(0, len(text), size)]</code></pre>
+    <p>Install the CLI with <code>npm install rag-scrape</code>.</p>
+    <blockquote>
+      <p>RAG gives LLMs access to private knowledge.</p>
+    </blockquote>
+  </article>
+  <footer class="site-footer"><p>© 2026 TestSite. All rights reserved.</p></footer>
+  <script>console.log("tracking noise");</script>
+  <div class="comments"><p>user comment noise</p></div>
+</body>
+</html>

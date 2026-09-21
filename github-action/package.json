@@ -1,0 +1,20 @@
+{
+  "name": "rag-scrape-action",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GitHub Action — batch-convert URLs to Markdown and commit them",
+  "main": "dist-action/index.js",
+  "scripts": {
+    "build": "tsc && ncc build dist/index.js -o dist-action",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/exec": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@vercel/ncc": "^0.38.1",
+    "typescript": "^5.4.5"
+  }
+}

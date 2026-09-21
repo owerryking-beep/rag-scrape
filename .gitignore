@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Build output (the CLI builds dist/ on publish)
+dist/
+
+# Local wrangler state
+.wrangler/
+.dev.vars
+
+# Logs / OS
+*.log
+.DS_Store

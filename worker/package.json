@@ -1,0 +1,25 @@
+{
+  "name": "rag-scrape-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "test": "node --import tsx --test tests/converter.test.ts tests/extractor.test.ts tests/stripe.test.ts"
+  },
+  "dependencies": {
+    "@mozilla/readability": "^0.5.0",
+    "hono": "^4.4.0",
+    "linkedom": "^0.18.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240620.0",
+    "tsx": "^4.11.0",
+    "typescript": "^5.4.5",
+    "wrangler": "^3.60.0"
+  }
+}

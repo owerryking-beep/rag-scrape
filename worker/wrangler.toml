@@ -1,0 +1,33 @@
+name = "rag-scrape-api"
+main = "src/index.ts"
+compatibility_date = "2024-05-29"
+# linkedom relies on a handful of Node builtins — nodejs_compat provides them
+# inside the Workers runtime without pulling in a full polyfill bundle.
+compatibility_flags = ["nodejs_compat"]
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Replace ALL placeholder values before deploying.
+# See the Deployment Checklist in the repository README.
+# ──────────────────────────────────────────────────────────────────────────────
+
+[vars]
+# The shared demo key used by `npx rag-scrape` with no --api-key flag.
+# Anyone can use it, so it is hard-capped at 5 requests per IP per 30 days.
+DEMO_KEY = "demo_rsk_free_tier_2024"
+# Create in the Stripe Dashboard: Products → new subscription product
+# "$19 / month, 10 000 requests" → copy the price ID.
+STRIPE_PRICE_ID = "price_REPLACE_ME"
+STRIPE_SUCCESS_URL = "https://ragscrape.dev/?checkout=success"
+STRIPE_CANCEL_URL = "https://ragscrape.dev/?checkout=cancelled"
+
+# Secrets — set via CLI, never commit:
+#   wrangler secret put STRIPE_SECRET_KEY
+#   wrangler secret put STRIPE_WEBHOOK_SECRET
+
+[[kv_namespaces]]
+binding = "API_KEYS"
+id = "0fb0f0a155734503b24f717c9190ca8d"
+
+[[kv_namespaces]]
+binding = "RATE_LIMITS"
+id = "2f83988970b945328c6a6d8cac711e9e"

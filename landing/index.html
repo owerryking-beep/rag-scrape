@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RagScrape — URL to Markdown API</title>
+  <meta name="description" content="Convert any URL to clean, LLM-ready Markdown. API, CLI & GitHub Action." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81' }
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    body{font-family:'Inter',sans-serif}
+    .gradient-bg{background:linear-gradient(135deg,#0f0f23 0%,#1a1a3e 25%,#0f0f23 50%,#1a1a2e 100%)}
+    .code-block{background:#0d1117;border:1px solid #30363d}
+    .code-block code{font-family:'JetBrains Mono',monospace}
+    .glow{box-shadow:0 0 60px rgba(99,102,241,.12)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .fade-up{animation:fadeUp .5s ease-out both}
+    .d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}
+  </style>
+</head>
+<body class="gradient-bg text-white min-h-screen" x-data="page()">
+
+  <!-- ─── Post-payment banner (Stripe success_url returns ?key=…) ───────── -->
+  <div x-show="successKey" class="bg-green-900/40 border-b border-green-700/50">
+    <div class="max-w-5xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
+      <div>
+        <p class="font-semibold text-green-300">✅ Payment successful — welcome to Pro!</p>
+        <p class="text-sm text-gray-300">
+          Your upgraded API key (10 000 reqs/mo). If it hasn't activated yet, wait ~1 minute.
+        </p>
+      </div>
+      <div class="flex items-center gap-2 bg-gray-900 border border-green-700/50 rounded-lg px-4 py-2 flex-shrink-0">
+        <code class="text-green-300 text-sm break-all" x-text="successKey"></code>
+        <button @click="navigator.clipboard.writeText(successKey)" class="text-gray-500 hover:text-white transition" title="Copy key">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div x-show="checkoutCancelled" class="bg-gray-800/80 border-b border-gray-700">
+    <div class="max-w-5xl mx-auto px-6 py-3 text-sm text-gray-400 flex items-center justify-between">
+      <span>Checkout was cancelled — no charge was made.</span>
+      <button @click="checkoutCancelled=false" class="text-gray-500 hover:text-white">✕</button>
+    </div>
+  </div>
+
+  <!-- ─── Nav ─────────────────────────────────────────────────────────── -->
+  <nav class="fixed top-0 w-full z-50 bg-gray-900/80 backdrop-blur-md border-b border-gray-800">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2 text-xl font-bold">📄 RagScrape</a>
+      <div class="hidden md:flex items-center gap-8 text-sm">
+        <a href="#how" class="text-gray-300 hover:text-white transition">How it works</a>
+        <a href="#code" class="text-gray-300 hover:text-white transition">Code</a>
+        <a href="#pricing" class="text-gray-300 hover:text-white transition">Pricing</a>
+      </div>
+      <a href="#pricing" class="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition">Get API Key</a>
+    </div>
+  </nav>
+
+  <!-- ─── Hero ────────────────────────────────────────────────────────── -->
+  <section class="pt-32 pb-20 px-6">
+    <div class="max-w-4xl mx-auto text-center">
+      <div class="fade-up inline-flex items-center gap-2 bg-brand-600/10 border border-brand-500/20 rounded-full px-4 py-1.5 mb-8">
+        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+        <span class="text-sm text-brand-300">v1.0 — Live</span>
+      </div>
+      <h1 class="fade-up d1 text-5xl md:text-7xl font-extrabold leading-tight mb-6">
+        Any URL to <span class="bg-gradient-to-r from-brand-400 to-purple-400 bg-clip-text text-transparent">clean Markdown</span>
+      </h1>
+      <p class="fade-up d2 text-xl text-gray-400 max-w-2xl mx-auto mb-10">
+        One API call. LLM-ready Markdown from any webpage. Built for RAG pipelines, knowledge bases & AI agents.
+      </p>
+      <div class="fade-up d3 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div class="code-block rounded-lg px-5 py-3 flex items-center gap-3">
+          <span class="text-green-400 select-none">$</span>
+          <code class="text-gray-300 text-sm">npx rag-scrape https://example.com</code>
+          <button @click="navigator.clipboard.writeText('npx rag-scrape https://example.com')" class="text-gray-500 hover:text-white transition" title="Copy">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          </button>
+        </div>
+        <a href="#pricing" class="bg-brand-600 hover:bg-brand-500 text-white px-8 py-3 rounded-lg font-semibold transition shadow-lg shadow-brand-600/25">
+          Get Free API Key →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── How it Works ────────────────────────────────────────────────── -->
+  <section id="how" class="py-20 px-6">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">How it works</h2>
+      <p class="text-gray-400 text-center mb-16 max-w-2xl mx-auto">Three steps. URL → Markdown in under 2 seconds.</p>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-8 hover:border-brand-500/30 transition glow">
+          <div class="w-12 h-12 bg-brand-600/20 rounded-xl flex items-center justify-center mb-6 text-2xl">🌐</div>
+          <h3 class="text-xl font-semibold mb-3">1. Send URL</h3>
+          <p class="text-gray-400">POST any URL. We handle redirects, encoding & edge cases.</p>
+        </div>
+        <div class="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-8 hover:border-brand-500/30 transition glow">
+          <div class="w-12 h-12 bg-brand-600/20 rounded-xl flex items-center justify-center mb-6 text-2xl">🧹</div>
+          <h3 class="text-xl font-semibold mb-3">2. Extract & Clean</h3>
+          <p class="text-gray-400">Mozilla Readability strips noise. Our converter turns clean HTML into Markdown.</p>
+        </div>
+        <div class="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-8 hover:border-brand-500/30 transition glow">
+          <div class="w-12 h-12 bg-brand-600/20 rounded-xl flex items-center justify-center mb-6 text-2xl">📝</div>
+          <h3 class="text-xl font-semibold mb-3">3. Get Markdown</h3>
+          <p class="text-gray-400">Receive structured Markdown + metadata. Feed it straight to your vector DB.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Code Examples ──────────────────────────────────────────────── -->
+  <section id="code" class="py-20 px-6 bg-gray-900/50">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Use it anywhere</h2>
+      <p class="text-gray-400 text-center mb-12 max-w-2xl mx-auto">API · CLI · GitHub Action — pick your integration.</p>
+
+      <div class="flex flex-wrap justify-center gap-2 mb-8">
+        <template x-for="t in tabs" :key="t">
+          <button @click="tab=t" :class="tab===t?'bg-brand-600 text-white':'bg-gray-800 text-gray-400 hover:text-white'" class="px-5 py-2 rounded-lg text-sm font-medium transition" x-text="t"></button>
+        </template>
+      </div>
+
+      <div class="max-w-3xl mx-auto code-block rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 bg-gray-800/50 border-b border-gray-700">
+          <span class="text-sm text-gray-400" x-text="tab"></span>
+          <button @click="navigator.clipboard.writeText(snippets[tab])" class="text-xs text-gray-500 hover:text-gray-300 transition">Copy</button>
+        </div>
+        <pre class="p-5 overflow-x-auto text-sm leading-relaxed"><code class="text-gray-300 whitespace-pre" x-text="snippets[tab]"></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Features ────────────────────────────────────────────────────── -->
+  <section class="py-20 px-6">
+    <div class="max-w-6xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="bg-gray-800/30 border border-gray-700/30 rounded-xl p-6"><div class="text-2xl mb-3">⚡</div><h3 class="font-semibold mb-2">Sub-2 s Latency</h3><p class="text-gray-400 text-sm">Cloudflare edge network, 300+ PoPs.</p></div>
+      <div class="bg-gray-800/30 border border-gray-700/30 rounded-xl p-6"><div class="text-2xl mb-3">🧠</div><h3 class="font-semibold mb-2">Smart Extraction</h3><p class="text-gray-400 text-sm">Readability removes ads, navs & popups.</p></div>
+      <div class="bg-gray-800/30 border border-gray-700/30 rounded-xl p-6"><div class="text-2xl mb-3">📊</div><h3 class="font-semibold mb-2">Rich Metadata</h3><p class="text-gray-400 text-sm">Title, author, word count, excerpt.</p></div>
+      <div class="bg-gray-800/30 border border-gray-700/30 rounded-xl p-6"><div class="text-2xl mb-3">🔒</div><h3 class="font-semibold mb-2">SSRF Protected</h3><p class="text-gray-400 text-sm">Private IPs & dangerous protocols blocked.</p></div>
+      <div class="bg-gray-800/30 border border-gray-700/30 rounded-xl p-6"><div class="text-2xl mb-3">📋</div><h3 class="font-semibold mb-2">Tables & Code</h3><p class="text-gray-400 text-sm">Proper tables, fenced code blocks w/ lang.</p></div>
+      <div class="bg-gray-800/30 border border-gray-700/30 rounded-xl p-6"><div class="text-2xl mb-3">🔄</div><h3 class="font-semibold mb-2">GitHub Action</h3><p class="text-gray-400 text-sm">Schedule scrapes, auto-commit to your repo.</p></div>
+    </div>
+  </section>
+
+  <!-- ─── Pricing ─────────────────────────────────────────────────────── -->
+  <section id="pricing" class="py-20 px-6 bg-gray-900/50">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Simple pricing</h2>
+      <p class="text-gray-400 text-center mb-16">Start free. Scale when you need to.</p>
+
+      <div class="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+        <!-- Free -->
+        <div class="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-8">
+          <h3 class="text-lg font-semibold text-gray-300 mb-2">Free</h3>
+          <div class="flex items-baseline gap-1 mb-6"><span class="text-4xl font-bold">$0</span><span class="text-gray-500">/mo</span></div>
+          <ul class="space-y-3 mb-8 text-gray-300 text-sm">
+            <li class="flex gap-2">✅ 50 requests / month</li>
+            <li class="flex gap-2">✅ Full API, CLI & Action</li>
+            <li class="flex gap-2">✅ Community support</li>
+          </ul>
+          <button @click="openRegister()" class="w-full py-3 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 transition font-medium">Get Free Key</button>
+        </div>
+        <!-- Pro -->
+        <div class="bg-gray-800/50 border-2 border-brand-500/50 rounded-2xl p-8 relative">
+          <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-600 text-white text-xs font-semibold px-3 py-1 rounded-full">POPULAR</span>
+          <h3 class="text-lg font-semibold text-brand-300 mb-2">Pro</h3>
+          <div class="flex items-baseline gap-1 mb-6"><span class="text-4xl font-bold">$19</span><span class="text-gray-500">/mo</span></div>
+          <ul class="space-y-3 mb-8 text-gray-300 text-sm">
+            <li class="flex gap-2">✅ <strong>10 000</strong> requests / month</li>
+            <li class="flex gap-2">✅ Everything in Free</li>
+            <li class="flex gap-2">✅ Priority processing</li>
+            <li class="flex gap-2">✅ Email support</li>
+          </ul>
+          <button @click="openCheckout()" class="w-full py-3 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-semibold transition shadow-lg shadow-brand-600/25">Subscribe — $19/mo</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Registration Modal ─────────────────────────────────────────── -->
+  <div x-show="showModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="showModal=false" @keydown.escape.window="showModal=false">
+    <div x-show="showModal" x-transition class="bg-gray-800 border border-gray-700 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+      <!-- form -->
+      <template x-if="!regKey">
+        <div>
+          <h3 class="text-xl font-bold mb-2">Get your free API key</h3>
+          <p class="text-gray-400 text-sm mb-6">50 requests / month. No credit card.</p>
+          <form @submit.prevent="doRegister()">
+            <input type="email" x-model="regEmail" placeholder="you@example.com" required class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-brand-500 mb-4" />
+            <button type="submit" :disabled="regBusy" class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-semibold transition disabled:opacity-50" x-text="regBusy?'Creating…':'Get Free Key'"></button>
+          </form>
+          <p x-show="regErr" x-text="regErr" class="text-red-400 text-sm mt-3"></p>
+        </div>
+      </template>
+      <!-- success -->
+      <template x-if="regKey">
+        <div class="text-center">
+          <div class="text-4xl mb-4">🎉</div>
+          <h3 class="text-xl font-bold mb-4">Your API Key</h3>
+          <div class="bg-gray-900 border border-gray-600 rounded-lg p-4 mb-4 flex items-center justify-between gap-3 text-left">
+            <code class="text-brand-300 text-sm break-all" x-text="regKey"></code>
+            <button @click="navigator.clipboard.writeText(regKey)" class="text-gray-500 hover:text-white transition flex-shrink-0">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            </button>
+          </div>
+          <p class="text-gray-400 text-sm mb-4">Save this — it won't be shown again.</p>
+          <div class="code-block rounded-lg p-3 text-left mb-6">
+            <code class="text-xs text-gray-400">export RAG_SCRAPE_API_KEY="<span class="text-brand-300" x-text="regKey"></span>"</code>
+          </div>
+          <button @click="showModal=false" class="w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition">Done</button>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- ─── Checkout Modal (replaces prompt()) ─────────────────────────── -->
+  <div x-show="checkoutModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="checkoutModal=false" @keydown.escape.window="checkoutModal=false">
+    <div x-show="checkoutModal" x-transition class="bg-gray-800 border border-gray-700 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+      <h3 class="text-xl font-bold mb-2">Subscribe to Pro</h3>
+      <p class="text-gray-400 text-sm mb-6">$19/month · 10 000 requests · cancel anytime.</p>
+      <form @submit.prevent="startCheckout()">
+        <input type="email" x-model="checkoutEmail" placeholder="you@example.com" required class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-brand-500 mb-4" />
+        <button type="submit" :disabled="checkoutBusy" class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-semibold transition disabled:opacity-50" x-text="checkoutBusy?'Redirecting to Stripe…':'Continue — $19/mo'"></button>
+      </form>
+      <p x-show="checkoutErr" x-text="checkoutErr" class="text-red-400 text-sm mt-3"></p>
+      <button @click="checkoutModal=false" class="w-full mt-3 py-2 text-sm text-gray-500 hover:text-gray-300 transition">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ─── Footer ──────────────────────────────────────────────────────── -->
+  <footer class="py-12 px-6 border-t border-gray-800">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2"><span class="text-xl">📄</span><span class="font-semibold">RagScrape</span><span class="text-gray-500 text-sm">© 2026</span></div>
+      <div class="flex items-center gap-6 text-sm text-gray-400">
+        <a href="https://github.com/ragscrape/rag-scrape" target="_blank" rel="noopener" class="hover:text-white transition">GitHub</a>
+        <a href="https://www.npmjs.com/package/rag-scrape" target="_blank" rel="noopener" class="hover:text-white transition">npm</a>
+        <a href="mailto:support@ragscrape.dev" class="hover:text-white transition">Support</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─── Alpine app ──────────────────────────────────────────────────── -->
+  <script>
+  function page(){
+    // ⚠️  Replace with your deployed Worker URL before shipping.
+    const API = 'https://rag-scrape-api.YOUR_SUBDOMAIN.workers.dev';
+
+    // Stripe success/cancel URLs append these query params
+    const params = new URLSearchParams(window.location.search);
+    const paidKey = params.get('key');
+
+    return {
+      // ── URL → key banner ──────────────────────────────────────────────
+      successKey: paidKey,
+      checkoutCancelled: params.get('checkout') === 'cancelled',
+
+      // ── code tabs ─────────────────────────────────────────────────────
+      tab: 'cURL',
+      tabs: ['cURL', 'Python', 'Node.js', 'CLI', 'GitHub Action'],
+      snippets: {
+        'cURL': `curl -X POST ${API}/scrape \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_KEY" \\
+  -d '{"url":"https://example.com/article"}'
+
+# → { "success": true, "markdown": "# …", "metadata": { … } }`,
+
+        'Python': `import requests
+
+r = requests.post(
+    "${API}/scrape",
+    headers={"Authorization": "Bearer YOUR_KEY"},
+    json={"url": "https://example.com/article"},
+)
+md = r.json()["markdown"]
+
+# Feed to your RAG pipeline
+chunks = splitter.split_text(md)
+vectorstore.add_texts(chunks)`,
+
+        'Node.js': `const res = await fetch("${API}/scrape", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: \`Bearer \${process.env.RAG_SCRAPE_KEY}\`,
+  },
+  body: JSON.stringify({ url: "https://example.com" }),
+});
+const { markdown, metadata } = await res.json();`,
+
+        'CLI': `# Single URL
+npx rag-scrape https://example.com
+
+# Save to file with front-matter
+npx rag-scrape https://example.com -o out.md --metadata
+
+# Batch
+npx rag-scrape batch urls.txt -d ./docs
+
+# Register for a free key
+npx rag-scrape register you@email.com`,
+
+        'GitHub Action': `name: Scrape Docs
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ragscrape/rag-scrape-action@v1
+        with:
+          urls-file: urls.txt
+          output-dir: scraped-docs
+          api-key: \${{ secrets.RAG_SCRAPE_KEY }}`
+      },
+
+      // ── free-key registration modal ───────────────────────────────────
+      showModal: false,
+      regEmail: '',
+      regKey: null,
+      regBusy: false,
+      regErr: '',
+
+      openRegister(){
+        this.showModal = true;
+        this.regKey = null;
+        this.regErr = '';
+        this.regEmail = '';
+      },
+
+      async doRegister(){
+        this.regBusy = true; this.regErr = '';
+        try {
+          const r = await fetch(`${API}/register`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email: this.regEmail})
+          });
+          const d = await r.json();
+          if (d.success && d.apiKey) this.regKey = d.apiKey;
+          else this.regErr = d.error?.message || 'Registration failed';
+        } catch {
+          this.regErr = 'Network error. Please retry.';
+        } finally {
+          this.regBusy = false;
+        }
+      },
+
+      // ── Stripe checkout ───────────────────────────────────────────────
+      checkoutModal: false,
+      checkoutEmail: '',
+      checkoutBusy: false,
+      checkoutErr: '',
+
+      openCheckout(){
+        this.checkoutModal = true;
+        this.checkoutErr = '';
+        this.checkoutEmail = '';
+      },
+
+      async startCheckout(){
+        this.checkoutBusy = true;
+        this.checkoutErr = '';
+        try {
+          const r = await fetch(`${API}/create-checkout`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email: this.checkoutEmail})
+          });
+          const d = await r.json();
+          if (d.success && d.checkoutUrl) window.location.href = d.checkoutUrl;
+          else this.checkoutErr = d.error?.message || 'Checkout failed';
+        } catch {
+          this.checkoutErr = 'Network error. Please retry.';
+        } finally {
+          this.checkoutBusy = false;
+        }
+      }
+    }
+  }
+  </script>
+</body>
+</html>

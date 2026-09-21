@@ -1,0 +1,26 @@
+name: Weekly Scrape
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scrape URLs → Markdown
+        uses: ./github-action
+        with:
+          urls-file: urls.txt
+          output-dir: scraped-docs
+          api-key: ${{ secrets.RAG_SCRAPE_API_KEY }}
+          commit-changes: "true"
+          delay-ms: "2000"

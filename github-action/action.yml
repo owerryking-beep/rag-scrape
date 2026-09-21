@@ -1,0 +1,50 @@
+name: "RagScrape — URL to Markdown"
+description: >
+  Batch-convert URLs to clean Markdown via the RagScrape Worker API and
+  commit the results to your repo. Perfect for RAG pipelines and knowledge bases.
+author: "RagScrape"
+
+branding:
+  icon: "file-text"
+  color: "blue"
+
+inputs:
+  urls-file:
+    description: "Path to a newline-delimited file of URLs (# comments allowed)"
+    required: true
+    default: "urls.txt"
+  output-dir:
+    description: "Directory for generated .md files"
+    required: false
+    default: "scraped-docs"
+  api-key:
+    description: "RagScrape API key (store in GitHub Secrets)"
+    required: true
+  commit-changes:
+    description: "Commit & push new files"
+    required: false
+    default: "true"
+  commit-message:
+    description: "Commit message"
+    required: false
+    default: "docs: update scraped markdown [rag-scrape]"
+  delay-ms:
+    description: "Delay between requests (ms)"
+    required: false
+    default: "1500"
+  api-url:
+    description: "Worker API base URL (for self-hosted instances)"
+    required: false
+    default: "https://rag-scrape-api.YOUR_SUBDOMAIN.workers.dev"
+
+outputs:
+  files-created:
+    description: "Count of successfully created .md files"
+  files-failed:
+    description: "Count of URLs that could not be processed"
+  output-directory:
+    description: "Resolved output directory path"
+
+runs:
+  using: "node20"
+  main: "dist-action/index.js"
