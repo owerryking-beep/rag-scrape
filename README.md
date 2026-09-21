@@ -3,6 +3,18 @@
 One API call turns any public URL into clean, LLM-ready Markdown. Built for
 RAG pipelines, knowledge bases, and AI agents.
 
+## Live now
+
+- **API + storefront:** <https://rag-scrape-api.owerryking.workers.dev>
+- **Source:** <https://github.com/owerryking-beep/rag-scrape>
+- Free tier active: 50 reqs/mo per key (`POST /register`); shared demo key
+  `demo_rsk_free_tier_2024` (5 reqs/IP/30 d) for trying it out.
+- Pro checkout ($19/mo, 10 000 reqs/mo): subscription → hosted checkout →
+  HMAC-signed webhook → key auto-upgraded, unit-tested end to end.
+  Payment provider: **Lemon Squeezy** (merchant of record, pays out to Kenya).
+  Switched from Stripe 2026-09-21 — Stripe live activation requires US-only
+  identity + bank details.
+
 - **Module 1** — Cloudflare Worker API (`worker/`): Hono + `@mozilla/readability`
   (on linkedom's DOM) + a custom Markdown converter. KV-based API keys,
   monthly rate limits, Stripe Checkout + webhooks.
@@ -10,8 +22,8 @@ RAG pipelines, knowledge bases, and AI agents.
   spinner, free-key registration, and batch mode.
 - **Module 3** — GitHub Action (`github-action/`): scrape a URL list, write
   Markdown files, commit & push.
-- **Module 4** — Stripe + landing page (`landing/index.html`): $19/mo Pro
-  subscription (10 000 calls) with Tailwind + Alpine.
+- **Module 4** — Lemon Squeezy payments + landing page (`landing/index.html`):
+  $19/mo Pro subscription (10 000 calls) with Tailwind + Alpine.
 
 ```
  CLI / Action / your code
@@ -24,8 +36,8 @@ RAG pipelines, knowledge bases, and AI agents.
 │  └─ POST /scrape         fetch → SSRF guard → linkedom DOM →            │
 │                          Readability → custom HTML→MD converter         │
 │  POST /register    free key (50/mo)                                     │
-│  POST /create-checkout  Stripe Checkout session ($19/mo)                │
-│  POST /webhook     Stripe events → KV tier upgrade (HMAC-verified)      │
+│  POST /create-checkout  Lemon Squeezy hosted checkout ($19/mo)        │
+│  POST /webhook     LS events (X-Signature HMAC) → KV tier upgrade       │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -48,6 +60,10 @@ Everything below was executed, not assumed:
 | CORS + `X-RateLimit-*` headers | ✅ present |
 | CLI build + scrape/register/error paths against live local API | ✅ |
 | Action `tsc` + `ncc` bundle + live smoke run (success, 404, outputs, key masking) | ✅ |
+| Production deploy (`wrangler deploy` → `*.workers.dev`) | ✅ live, `/health` 200 |
+| Public-URL e2e: scrape / register / demo key / rate limits | ✅ |
+| Stripe test-mode money loop (session → signed webhook → upgrade) | ✅ free (50/mo) → Pro (10 000/mo) proven on the live worker |
+| CLI register / scrape / front-matter / batch vs production | ✅ |
 
 ---
 
@@ -64,10 +80,11 @@ wrangler kv:namespace create API_KEYS          # → id + preview_id
 wrangler kv:namespace create RATE_LIMITS       # → id + preview_id
 
 # 2. Secrets (never commit)
-wrangler secret put STRIPE_SECRET_KEY          # sk_live_…
-wrangler secret put STRIPE_WEBHOOK_SECRET      # whsec_…
+wrangler secret put LS_API_KEY                 # Lemon Squeezy API key
+wrangler secret put LS_WEBHOOK_SECRET          # webhook signing secret
 
-# 3. Set STRIPE_PRICE_ID / success & cancel URLs in wrangler.toml
+# 3. Set LS_STORE_ID / LS_VARIANT_ID / success & cancel URLs in wrangler.toml
+#    (store + variant IDs: GET https://api.lemonsqueezy.com/v1/stores|variants)
 # 4. Deploy
 wrangler deploy
 # → https://rag-scrape-api.<sub>.workers.dev
@@ -86,12 +103,13 @@ Local development: `npm run dev` (Miniflare, simulated KV).
 
 | Endpoint | Auth | Description |
 |---|---|---|
-| `GET /` | – | Service info |
+| `GET /` | – | Landing page (HTML storefront; `?key=` / `?checkout=` handled client-side) |
+| `GET /api` | – | Service info (JSON) |
 | `GET /health` | – | Liveness |
 | `POST /scrape` | Bearer key | `{ "url": string }` → `{ success, markdown, metadata }` |
 | `POST /register` | – | `{ "email": string }` → free key (50 reqs/mo) |
-| `POST /create-checkout` | – | `{ "email", "apiKey"? }` → `{ checkoutUrl }` |
-| `POST /webhook` | Stripe HMAC | Stripe event sink |
+| `POST /create-checkout` | – | `{ "email", "apiKey"? }` → `{ checkoutUrl }` (Lemon Squeezy hosted) |
+| `POST /webhook` | LS `X-Signature` HMAC | `subscription_created/updated/expired`, `subscription_payment_success` |
 
 Error shape (all failures):
 
@@ -135,8 +153,9 @@ Success responses carry `X-RateLimit-Limit`, `X-RateLimit-Remaining`,
 - **`/register` is unauthenticated** by design (frictionless free tier).
   Mitigation if abused: Cloudflare Turnstile challenge or an IP-registration
   cap in front of it.
-- **Stripe API version is pinned** (`2024-06-20`) in `services/stripe.ts` —
-  bump deliberately.
+- **Lemon Squeezy webhook events are subscribed via the LS API** — the worker
+  expects `LS_WEBHOOK_SECRET` to match the webhook's signing secret. Fees ≈
+  5 % + $0.50 (+ intl/subscription surcharges).
 - `@mozilla/readability` 0.5.0 has no `url` option; relative URLs are
   absolutised via the injected `<base>` tag **and** the converter's
   `baseUrl` fallback (belt and suspenders).
@@ -222,29 +241,40 @@ To publish the action: commit `github-action/dist-action/`, tag `v1`, push.
 
 ## Module 4 — Stripe & landing page
 
-1. **Stripe product:** Dashboard → Products → subscription, **$19.00/month**,
-   copy the price id → `STRIPE_PRICE_ID` in `wrangler.toml`.
+1. **Lemon Squeezy product:** LS dashboard → Products → New product →
+   subscription, **$19.00/month** → copy the store + variant IDs →
+   `LS_STORE_ID` / `LS_VARIANT_ID` in `wrangler.toml`.
 2. **Webhook:** Dashboard → Developers → Webhooks → add endpoint
-   `https://<worker>/webhook` with events:
-   `checkout.session.completed`, `customer.subscription.updated`,
-   `customer.subscription.deleted`, `invoice.payment_succeeded`,
-   `invoice.payment_failed`.
+   `https://<worker>/webhook`. Minimum event:
+   `checkout.session.completed` (the production endpoint also adds
+   `customer.subscription.updated` / `deleted` and
+   `invoice.payment_succeeded` / `failed` so tier changes and payment
+   failures sync automatically).
    Copy the signing secret → `wrangler secret put STRIPE_WEBHOOK_SECRET`.
-3. **Flow:** `POST /create-checkout` creates a Checkout session (key pre-
-   registered at free limits) and embeds `?key=rsk_…` in the success URL.
-   On payment, the webhook upgrades the key in KV to Pro (10 000/mo); the
-   landing page shows the key immediately in a green banner (it works even
-   before the webhook lands).
-4. **Landing page:** single file, Tailwind + Alpine via CDN. Replace the
-   `API` constant (top of the `<script>` at the bottom) with your deployed
-   Worker URL, then deploy to Cloudflare Pages / Vercel / Netlify:
-   `wrangler pages deploy landing --project-name ragscrape-landing`.
-   Keep the Worker's CORS allow-list in `src/index.ts` in sync with the
-   landing page's origin.
+3. **Flow:** `POST /create-checkout` creates a Lemon Squeezy checkout for the
+   Pro variant (key pre-registered at free limits); the key rides along as
+   checkout custom data and in the `redirect_url`. On payment the
+   `subscription_created` webhook upgrades the key to Pro (10 000/mo);
+   `subscription_updated/expired` keeps the tier in sync (cancellations
+   downgrade); `subscription_payment_success` resets the monthly counter.
+4. **Landing page:** single file, Tailwind + Alpine via CDN — **served by the
+   Worker itself at `GET /`** (same origin, no CORS, no extra hosting). The
+   HTML is embedded at build time: `node scripts/embed-landing.mjs` regenerates
+   `src/generated/landing-html.ts` from `landing/index.html` — run it after
+   editing the page, then `wrangler deploy`. The page's `const API` points at
+   the Worker URL; Stripe checkout returns to
+   `/?checkout=success&key=rsk_…` and the page shows the key in a banner.
+   (Optional: `landing/` can also be hosted on Cloudflare Pages — in that case
+   add that origin to the CORS allow-list in `src/index.ts`.)
 
 ---
 
 ## Deployment checklist (exact order)
+
+> **Status (2026-09-21):** steps 1–3 and 6 are **done** on the live instance
+> (`https://rag-scrape-api.owerryking.workers.dev`); step 4/5 remain until the
+> npm token and live Stripe keys arrive. Keep this checklist for self-hosting
+> or re-deploys.
 
 ```bash
 # 1. Worker
@@ -265,7 +295,8 @@ wrangler deploy
 #    landing/index.html           → const API = '…'
 #    .github/workflows/scrape.yml → (optional) api-url input
 
-# 3. Stripe webhook (see Module 4) — requires the deployed URL from step 1
+# 3. Lemon Squeezy webhook (create via LS API, url <worker>/webhook,
+#    signing secret → wrangler secret put LS_WEBHOOK_SECRET)
 
 # 4. CLI
 cd ../cli && npm install && npm run build

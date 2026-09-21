@@ -13,10 +13,11 @@ import {
   FREE_TIER_LIMIT,
   DAY_SECONDS,
 } from "./types.js";
-import { generateApiKey } from "./services/stripe.js";
+import { generateApiKey } from "./services/lemonsqueezy.js";
 import { scrapeRouter } from "./routes/scrape.js";
 import { checkoutRouter } from "./routes/checkout.js";
 import { webhookRouter } from "./routes/webhook.js";
+import { LANDING_HTML } from "./generated/landing-html.js";
 
 const app = new Hono<HonoEnv>();
 
@@ -28,8 +29,7 @@ app.use(
   "*",
   cors({
     origin: [
-      "https://ragscrape.dev",
-      "https://www.ragscrape.dev",
+      "https://rag-scrape-api.owerryking.workers.dev",
       "http://localhost:3000",
     ],
     allowMethods: ["GET", "POST", "OPTIONS"],
@@ -43,14 +43,18 @@ app.use(
   }),
 );
 
-// ── Health / info ────────────────────────────────────────────────────────────
+// ── Landing page + machine info ─────────────────────────────────────────────
 
-app.get("/", (c) =>
+// The public storefront, served from the API's own domain (no separate
+// hosting needed; same origin = no CORS for the page's own API calls).
+app.get("/", (c) => c.html(LANDING_HTML));
+
+app.get("/api", (c) =>
   c.json({
     service: "rag-scrape-api",
     version: "1.0.0",
     status: "healthy",
-    docs: "https://ragscrape.dev",
+    docs: "https://rag-scrape-api.owerryking.workers.dev",
     endpoints: {
       scrape: "POST /scrape",
       register: "POST /register",
@@ -127,7 +131,7 @@ app.post("/register", async (c) => {
       limit: FREE_TIER_LIMIT,
       message:
         `Free API key created (${FREE_TIER_LIMIT} reqs/mo). Keep it secret! ` +
-        "Upgrade at https://ragscrape.dev for 10 000 reqs/mo.",
+        "Upgrade at https://rag-scrape-api.owerryking.workers.dev for 10 000 reqs/mo.",
     },
     200,
   );

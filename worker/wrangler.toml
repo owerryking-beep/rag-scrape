@@ -14,15 +14,23 @@ compatibility_flags = ["nodejs_compat"]
 # The shared demo key used by `npx rag-scrape` with no --api-key flag.
 # Anyone can use it, so it is hard-capped at 5 requests per IP per 30 days.
 DEMO_KEY = "demo_rsk_free_tier_2024"
-# Create in the Stripe Dashboard: Products → new subscription product
-# "$19 / month, 10 000 requests" → copy the price ID.
-STRIPE_PRICE_ID = "price_REPLACE_ME"
-STRIPE_SUCCESS_URL = "https://ragscrape.dev/?checkout=success"
-STRIPE_CANCEL_URL = "https://ragscrape.dev/?checkout=cancelled"
 
-# Secrets — set via CLI, never commit:
-#   wrangler secret put STRIPE_SECRET_KEY
-#   wrangler secret put STRIPE_WEBHOOK_SECRET
+# ── Payments: Lemon Squeezy (since 2026-09-21) ───────────────────────────────
+# Stripe live activation requires US-only identity/bank details, which blocked
+# the Kenya-based account; Lemon Squeezy is the merchant of record and pays
+# out to Kenya. Secrets (never commit):
+#   wrangler secret put LS_API_KEY
+#   wrangler secret put LS_WEBHOOK_SECRET
+# STORE_ID / VARIANT_ID are fetched via the LS API once the key exists.
+LS_STORE_ID = "SET_VIA_LS_API"
+LS_VARIANT_ID = "SET_VIA_LS_API"
+# "true" → create test-mode checkouts (store in Test mode). Leave "" for live.
+LS_TEST_MODE = ""
+
+# The landing page is served by this same worker at "/", so checkout
+# returns to it; the page reads ?key= / ?checkout= from the query string.
+CHECKOUT_SUCCESS_URL = "https://rag-scrape-api.owerryking.workers.dev/?checkout=success"
+CHECKOUT_CANCEL_URL = "https://rag-scrape-api.owerryking.workers.dev/?checkout=cancelled"
 
 [[kv_namespaces]]
 binding = "API_KEYS"

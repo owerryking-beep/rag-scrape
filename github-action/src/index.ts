@@ -180,7 +180,7 @@ async function run(): Promise<void> {
     const delayMs = Math.max(0, parseInt(core.getInput("delay-ms") || "1500", 10));
     const apiUrl =
       core.getInput("api-url") ||
-      "https://rag-scrape-api.YOUR_SUBDOMAIN.workers.dev";
+      "https://rag-scrape-api.owerryking.workers.dev";
 
     // Never echo the secret in logs
     core.setSecret(apiKey);

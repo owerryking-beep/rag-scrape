@@ -3,11 +3,13 @@
 export interface Env {
   API_KEYS: KVNamespace;
   RATE_LIMITS: KVNamespace;
-  STRIPE_SECRET_KEY: string;
-  STRIPE_WEBHOOK_SECRET: string;
-  STRIPE_PRICE_ID: string;
-  STRIPE_SUCCESS_URL: string;
-  STRIPE_CANCEL_URL: string;
+  LS_API_KEY: string;
+  LS_WEBHOOK_SECRET: string;
+  LS_STORE_ID: string;
+  LS_VARIANT_ID: string;
+  LS_TEST_MODE: string;
+  CHECKOUT_SUCCESS_URL: string;
+  CHECKOUT_CANCEL_URL: string;
   DEMO_KEY: string;
 }
 
@@ -20,8 +22,7 @@ export interface ApiKeyData {
   email: string;
   tier: Tier;
   limit: number;
-  stripeCustomerId?: string;
-  stripeSubscriptionId?: string;
+  lsSubscriptionId?: string;
   createdAt: string;
   active: boolean;
 }

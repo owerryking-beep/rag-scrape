@@ -12,9 +12,10 @@
   ],
   "author": "RagScrape",
   "license": "MIT",
+  "homepage": "https://rag-scrape-api.owerryking.workers.dev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ragscrape/rag-scrape"
+    "url": "https://github.com/owerryking-beep/rag-scrape"
   },
   "type": "module",
   "main": "dist/index.js",

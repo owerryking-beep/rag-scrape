@@ -5,7 +5,7 @@ import type {
   CheckoutResponse,
   ErrorResponse,
 } from "../types.js";
-import { createCheckoutSession } from "../services/stripe.js";
+import { createCheckoutSession } from "../services/lemonsqueezy.js";
 
 export const checkoutRouter = new Hono<HonoEnv>();
 

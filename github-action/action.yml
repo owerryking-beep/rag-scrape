@@ -35,7 +35,7 @@ inputs:
   api-url:
     description: "Worker API base URL (for self-hosted instances)"
     required: false
-    default: "https://rag-scrape-api.YOUR_SUBDOMAIN.workers.dev"
+    default: "https://rag-scrape-api.owerryking.workers.dev"
 
 outputs:
   files-created:

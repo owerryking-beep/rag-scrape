@@ -71,7 +71,7 @@ export async function authMiddleware(
   if (!raw) {
     return unauthorized(
       c,
-      "Invalid API key. Register a free key at https://ragscrape.dev",
+      "Invalid API key. Register a free key at https://rag-scrape-api.owerryking.workers.dev",
     );
   }
 
@@ -88,7 +88,7 @@ export async function authMiddleware(
         success: false,
         error: {
           code: "KEY_INACTIVE",
-          message: "API key deactivated. Contact support@ragscrape.dev",
+          message: "API key deactivated. Contact Owerryking@gmail.com",
         },
       },
       403,
@@ -118,7 +118,7 @@ async function checkDemoKey(
 
   return {
     key: c.env.DEMO_KEY,
-    email: "demo@ragscrape.dev",
+    email: "demo@localhost",
     tier: "free",
     limit: FREE_TIER_LIMIT,
     createdAt: new Date().toISOString(),

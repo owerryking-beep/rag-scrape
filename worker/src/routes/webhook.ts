@@ -1,11 +1,11 @@
 import { Hono } from "hono";
 import type { HonoEnv, ErrorResponse, WebhookAck } from "../types.js";
-import { handleWebhookEvent } from "../services/stripe.js";
+import { handleWebhookEvent } from "../services/lemonsqueezy.js";
 
 export const webhookRouter = new Hono<HonoEnv>();
 
 webhookRouter.post("/webhook", async (c) => {
-  const signature = c.req.header("Stripe-Signature");
+  const signature = c.req.header("X-Signature");
 
   if (!signature) {
     return c.json<ErrorResponse>(
@@ -13,7 +13,7 @@ webhookRouter.post("/webhook", async (c) => {
         success: false,
         error: {
           code: "MISSING_SIGNATURE",
-          message: "Missing Stripe-Signature header.",
+          message: "Missing X-Signature header.",
         },
       },
       400,
@@ -56,7 +56,7 @@ webhookRouter.post("/webhook", async (c) => {
       );
     }
 
-    // 500 → Stripe retries with backoff, so a transient KV blip self-heals.
+    // 500 → Lemon Squeezy retries with backoff, so a transient KV blip self-heals.
     return c.json<ErrorResponse>(
       {
         success: false,

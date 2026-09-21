@@ -6,7 +6,7 @@ export const CONFIG = {
    */
   API_BASE_URL: (
     process.env.RAG_SCRAPE_API_URL ??
-    "https://rag-scrape-api.YOUR_SUBDOMAIN.workers.dev"
+    "https://rag-scrape-api.owerryking.workers.dev"
   ).replace(/\/+$/, ""),
   /**
    * Shared fallback demo key. The Worker caps it at 5 requests per IP per

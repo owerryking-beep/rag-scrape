@@ -46,7 +46,7 @@ export async function rateLimitMiddleware(
   if (rl.count >= keyData.limit) {
     const upgradeHint =
       keyData.tier === "free"
-        ? " Upgrade to Pro ($19/mo) for 10,000 requests: https://ragscrape.dev"
+        ? " Upgrade to Pro ($19/mo) for 10,000 requests: https://rag-scrape-api.owerryking.workers.dev"
         : ` Monthly limit resets on ${resetDate}.`;
 
     return c.json(

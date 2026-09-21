@@ -175,7 +175,7 @@ program
       console.log(chalk.dim(`  export RAG_SCRAPE_API_KEY="${data.apiKey}"`));
       console.log("");
       console.log(
-        chalk.dim(`Free tier: ${data.limit} reqs/mo. Upgrade → https://ragscrape.dev`),
+        chalk.dim(`Free tier: ${data.limit} reqs/mo. Upgrade → https://rag-scrape-api.owerryking.workers.dev`),
       );
     } catch (err) {
       spinner.fail(chalk.red("Registration failed"));
@@ -195,14 +195,16 @@ program
   .option("-b, --base-url <url>", "API base URL")
   .option("-d, --output-dir <dir>", "Output directory", "./output")
   .option("--delay <ms>", "Delay between requests (ms)", "1000")
+  .option("-q, --quiet", "No spinner / info output", false)
   .action(
     async (
       file: string,
-      opts: { apiKey?: string; baseUrl?: string; outputDir: string; delay: string },
+      opts: { apiKey?: string; baseUrl?: string; outputDir: string; delay: string; quiet?: boolean },
     ) => {
       const apiKey = resolveKey(opts);
       const baseUrl = resolveBaseUrl(opts);
       const delay = parseInt(opts.delay, 10) || 1000;
+      const quiet = !!opts.quiet;
 
       let lines: string[];
       try {
@@ -225,13 +227,13 @@ program
         await mkdir(opts.outputDir, { recursive: true });
       }
 
-      console.log(chalk.bold(`Processing ${lines.length} URLs…\n`));
+      if (!quiet) console.log(chalk.bold(`Processing ${lines.length} URLs…\n`));
       let ok = 0;
       let fail = 0;
 
       for (let i = 0; i < lines.length; i++) {
         const url = lines[i]!;
-        const spinner = ora(`[${i + 1}/${lines.length}] ${url}`).start();
+        const spinner = quiet ? null : ora(`[${i + 1}/${lines.length}] ${url}`).start();
 
         const result = await scrapeUrl(url, apiKey, baseUrl);
 
@@ -248,23 +250,26 @@ program
           content += result.markdown;
 
           await writeFile(filepath, content, "utf-8");
-          spinner.succeed(chalk.green(`[${i + 1}/${lines.length}] ${filename}`));
+          spinner?.succeed(chalk.green(`[${i + 1}/${lines.length}] ${filename}`));
           ok++;
         } else {
-          spinner.fail(
+          spinner?.fail(
             chalk.red(`[${i + 1}/${lines.length}] ${url}: ${result.error.message}`),
           );
+          if (quiet) process.stderr.write(`${url}: ${result.error.message}\n`);
           fail++;
         }
 
         if (i < lines.length - 1) await sleep(delay);
       }
 
-      console.log("");
-      console.log(chalk.bold("Results:"));
-      console.log(chalk.green(`  ✓ ${ok} succeeded`));
-      if (fail > 0) console.log(chalk.red(`  ✗ ${fail} failed`));
-      console.log(chalk.dim(`  Output: ${opts.outputDir}/`));
+      if (!quiet) {
+        console.log("");
+        console.log(chalk.bold("Results:"));
+        console.log(chalk.green(`  ✓ ${ok} succeeded`));
+        if (fail > 0) console.log(chalk.red(`  ✗ ${fail} failed`));
+        console.log(chalk.dim(`  Output: ${opts.outputDir}/`));
+      }
 
       if (fail === lines.length) process.exit(1);
     },
