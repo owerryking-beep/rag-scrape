@@ -33,27 +33,32 @@ no credit card) + a free Gemini API key + a free dev.to account.
    **Import Blueprint** → choose `ragbot-daily.blueprint.json` from this folder.
 2. You'll see 3 connected bubbles: **Set Variables → Gemini → dev.to**.
 
-If the importer complains about the file (Make changes its format now and
-then), don't fight it — build the 3 bubbles by hand, it's 10 minutes:
+**Import error?** (e.g. "references inaccessible module") — that was the old
+v1 file; the current blueprint is v2 with only 2 standard HTTP modules
+(validated: 3/3 clean end-to-end payloads). Delete the broken scenario
+(Scenarios → ⋯ → Delete), then import again. If import STILL fails, build
+2 bubbles by hand — both use the module **HTTP → Make a request**:
+
+- **Bubble 1** → URL `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=YOUR_GEMINI_API_KEY` · Method POST · Body type **Raw** · Content type `application/json` · Request content = copy the long single-line JSON verbatim from the blueprint file (the `"data"` value of the first module).
+- **Bubble 2** → URL `https://dev.to/api/articles` · POST · **Raw** · `application/json` · Headers: `api-key` = your dev.to key · `Content-Type` = `application/json` · `User-Agent` = `RagBot/1.0` · Request content = exactly `{{1.candidates[].content.parts[].text}}`
 
 | Bubble | Module to add | Key settings |
 |---|---|---|
-| 1 | **Tools → Set variable(s)** | Name `prompt`, value = copy the long text from the blueprint file (`"prompt": "..."`) |
-| 2 | **HTTP → Make a request** | URL `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=YOUR_GEMINI_API_KEY`, POST, body `{"contents":[{"parts":[{"text":"{{1.prompt}}"}]}]}` |
-| 3 | **HTTP → Make a request** | URL `https://dev.to/api/articles`, POST, headers `api-key: YOUR_DEVTO_API_KEY` + `Content-Type: application/json`, body `{"article":{"body_markdown":{{2.candidates[].content.parts[].text}}}}` (map the Gemini text field by clicking it) |
+(The two-bubble manual build is described above — nothing else needed.)
 
 > **Tested end-to-end:** the exact pipeline below already produced a live
 > article — "Stop Splitting by 500 Tokens: Why Heading-Aligned Chunking Wins
 > RAG" on dev.to (2026-09-22). Gemini occasionally 503s; a retry fixes it
 > (Make auto-retries once; a skipped day self-heals the next day).
 > If a publish ever fails with `403 Forbidden Bots`, add a header
-> `User-Agent: RagBot/1.0` to bubble 3.
+> `User-Agent: RagBot/1.0` to bubble 2.
 
 ### Step 3 — Paste your two keys
 
-1. Open **bubble 2** → replace `YOUR_GEMINI_API_KEY` in the URL with your
-   `AIza…` key.
-2. Open **bubble 3** → replace `YOUR_DEVTO_API_KEY` with your dev.to key.
+1. Open **bubble 1** → replace `YOUR_GEMINI_API_KEY` in the URL with your
+   Gemini key.
+2. Open **bubble 2** → Headers → replace `YOUR_DEVTO_API_KEY` with your
+   dev.to key.
 
 ### Step 4 — Test once
 
@@ -78,7 +83,7 @@ you sleep — except free and actually available in Kenya.
   prompt's word target to 900–1,200 words + `published: false` (drafts for
   your review instead of auto-publish), schedule **Sunday 10:00**.
 - **WordPress.com blog** (good for SEO): add a 4th bubble "WordPress →
-  Create a post" after bubble 3.
+  Create a post" after bubble 2.
 - **X/Twitter:** Make has an X module, but X's API is now pay-per-use —
   pennies per post, add it later if you want.
 
