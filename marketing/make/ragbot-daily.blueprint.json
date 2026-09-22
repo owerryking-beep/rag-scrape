@@ -1,49 +1,59 @@
 {
-  "name": "RagBot — daily post",
+  "name": "RagBot v2 \u2014 daily post (2 modules)",
   "flow": [
     {
       "id": 1,
-      "module": "util:SetVariables",
-      "version": 1,
-      "parameters": {},
-      "mapper": {
-        "variables": [
-          {
-            "name": "date",
-            "value": "{{formatDate(now; \"YYYY-MM-DD (dddd)\")}}"
-          },
-          {
-            "name": "prompt",
-            "value": "You are the marketing voice of RagScrape (https://rag-scrape-api.owerryking.workers.dev), an API that turns any URL into RAG-ready Markdown in one call: heading-aligned chunks, optional 384-dim embeddings (embed:true), token slimming (stripLinks/stripImages), change-aware re-indexing (contentHash/ifNoneHash -> unchanged pages return no content), a docs-site crawler that generates llms.txt (POST /llms-txt), a free no-signup converter at /convert, and an MCP server (npx rag-scrape mcp). Free tier 50 req/mo, paid from $9/mo.\n\nToday is {{1.date}}. Rotate a DIFFERENT angle from these themes (never repeat yesterday's angle): (1) why heading-aligned chunking beats fixed-size splitting, (2) llms.txt explained + how to generate one for any site, (3) change-aware re-indexing: stop re-embedding unchanged pages, (4) one-call embeddings on Cloudflare Workers AI, (5) token slimming: stripLinks/stripImages for smaller prompts, (6) the MCP server: give Claude/agents web scraping as a tool, (7) a concrete RAG pipeline recipe using the API, (8) free tool shout-out: /convert needs no signup.\n\nWrite a social/blog post of 250-400 words. Start with Jekyll front matter EXACTLY like:\n---\ntitle: <catchy specific title, max 90 chars>\npublished: true\ntags: [pick 3-4 from: ai, rag, llm, webdev, api, markdown, datascience]\ndescription: <one sentence, max 140 chars>\n---\n\nThen the post body in Markdown: a strong hook first line, short paragraphs, one concrete example (curl or JSON snippet where it fits), and end with exactly this call to action:\n\nTry it free (no signup): https://rag-scrape-api.owerryking.workers.dev/convert — free API key: 50 requests/month. Full docs: https://rag-scrape-api.owerryking.workers.dev/llms-full.txt\n\nOutput ONLY the Markdown document, nothing else."
-          }
-        ]
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": {
+        "handleErrors": true,
+        "useNewZLibDeCompress": true
       },
-      "metadata": {
-        "designer": { "x": 0, "y": 0 },
-        "restore": {},
-        "parameters": [
+      "mapper": {
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=YOUR_GEMINI_API_KEY",
+        "serializeUrl": false,
+        "method": "post",
+        "headers": [
           {
-            "name": "variables",
-            "type": "array",
-            "display": "label",
-            "label": "Variables",
-            "spec": [
-              { "name": "name", "type": "text", "label": "Name", "required": true },
-              { "name": "value", "type": "text", "label": "Value" }
-            ]
+            "name": "Content-Type",
+            "value": "application/json"
           }
         ],
-        "expect": [
-          {
-            "name": "variables",
-            "type": "array",
-            "label": "Variables",
-            "spec": [
-              { "name": "name", "type": "text", "label": "Name", "required": true },
-              { "name": "value", "type": "text", "label": "Value" }
-            ]
+        "qs": [],
+        "bodyType": "raw",
+        "contentType": "application/json",
+        "data": "{\"contents\":[{\"parts\":[{\"text\":\"You are the marketing voice of RagScrape (https://rag-scrape-api.owerryking.workers.dev), an API that turns any URL into RAG-ready Markdown in one call: heading-aligned chunks, optional 384-dim embeddings (embed true), token slimming (stripLinks, stripImages), change-aware re-indexing (send contentHash back as ifNoneHash and unchanged pages return unchanged true with no content), a docs-site crawler that generates llms.txt (POST /llms-txt), a free no-signup converter at /convert, and an MCP server (npx rag-scrape mcp). Free tier: 50 requests/month, paid from $9/mo. Choose ONE theme, varying from previous days: (1) heading-aligned chunking beats fixed-size splitting, (2) llms.txt explained and how to generate one for any site, (3) change-aware re-indexing stops re-embedding unchanged pages, (4) one-call embeddings on Cloudflare Workers AI, (5) token slimming for smaller prompts, (6) the MCP server for Claude and agents, (7) a concrete RAG pipeline recipe using the API, (8) the free converter tool. Write a 250-400 word developer blog post: strong hook, short paragraphs, one concrete curl example, ending with exactly this call to action: Try it free (no signup): https://rag-scrape-api.owerryking.workers.dev/convert - free API key: 50 requests/month. Full docs: https://rag-scrape-api.owerryking.workers.dev/llms-full.txt - Return ONLY a single line of raw JSON with no markdown fences and no commentary, exactly this shape: {\\\"article\\\": {\\\"body_markdown\\\": \\\"---\\\\ntitle: <catchy title max 90 chars>\\\\npublished: true\\\\ntags: [three or four of: ai, rag, llm, webdev, api, markdown, datascience]\\\\ndescription: <one sentence max 140 chars>\\\\n---\\\\n\\\\n<the full post markdown with every newline escaped as backslash-n>\\\"}}\"}]}],\"generationConfig\":{\"temperature\":0.9,\"maxOutputTokens\":2048}}",
+        "timeout": "120",
+        "shareCookies": false,
+        "parseResponse": true,
+        "followRedirect": true,
+        "useQuerystring": false,
+        "rejectUnauthorized": true,
+        "followAllRedirects": false
+      },
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 0
+        },
+        "restore": {
+          "expect": {
+            "method": {
+              "label": "POST"
+            },
+            "bodyType": {
+              "label": "Raw"
+            },
+            "contentType": {
+              "label": "application/json"
+            }
+          },
+          "parameters": {
+            "handleErrors": {
+              "label": "Yes"
+            }
           }
-        ]
+        }
       }
     },
     {
@@ -55,79 +65,27 @@
         "useNewZLibDeCompress": true
       },
       "mapper": {
-        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=YOUR_GEMINI_API_KEY",
-        "serializeUrl": false,
-        "method": "post",
-        "headers": [
-          { "name": "Content-Type", "value": "application/json" }
-        ],
-        "qs": [],
-        "bodyType": "raw",
-        "contentType": "application/json",
-        "data": "{\"contents\":[{\"parts\":[{\"text\":\"{{1.prompt}}\"}]}],\"generationConfig\":{\"temperature\":0.9,\"maxOutputTokens\":2048}}",
-        "timeout": "120",
-        "shareCookies": false,
-        "parseResponse": true,
-        "followRedirect": true,
-        "useQuerystring": false,
-        "rejectUnauthorized": true,
-        "followAllRedirects": false
-      },
-      "metadata": {
-        "designer": { "x": 300, "y": 0 },
-        "restore": {
-          "expect": {
-            "method": { "label": "POST" },
-            "bodyType": { "label": "Raw" },
-            "contentType": { "label": "application/json" }
-          },
-          "parameters": {
-            "handleErrors": { "label": "Yes" }
-          }
-        },
-        "parameters": [
-          { "name": "handleErrors", "type": "boolean", "label": "Evaluate all states as errors (except for ok)", "required": true },
-          { "name": "useNewZLibDeCompress", "type": "boolean", "label": "Use new ZLib decompress", "required": true }
-        ],
-        "expect": [
-          { "name": "url", "type": "url", "label": "URL", "required": true },
-          { "name": "serializeUrl", "type": "boolean", "label": "Serialize URL", "required": true },
-          { "name": "method", "type": "select", "label": "Method", "required": true },
-          { "name": "headers", "type": "array", "label": "Headers", "spec": [ { "name": "name", "type": "text", "label": "Name", "required": true }, { "name": "value", "type": "text", "label": "Value" } ] },
-          { "name": "qs", "type": "array", "label": "Query string", "spec": [ { "name": "name", "type": "text", "label": "Name", "required": true }, { "name": "value", "type": "text", "label": "Value" } ] },
-          { "name": "bodyType", "type": "select", "label": "Body type", "required": true },
-          { "name": "contentType", "type": "text", "label": "Content type", "required": true },
-          { "name": "data", "type": "text", "label": "Request content" },
-          { "name": "timeout", "type": "uinteger", "label": "Evaluate all states as errors (except for ok)" },
-          { "name": "shareCookies", "type": "boolean", "label": "Share cookies with other modules", "required": true },
-          { "name": "parseResponse", "type": "boolean", "label": "Parse response", "required": true },
-          { "name": "followRedirect", "type": "boolean", "label": "Follow the redirect", "required": true },
-          { "name": "useQuerystring", "type": "boolean", "label": "Use Multipart/form-data", "required": true },
-          { "name": "rejectUnauthorized", "type": "boolean", "label": "Evaluate error certificates", "required": true },
-          { "name": "followAllRedirects", "type": "boolean", "label": "Follow all redirect", "required": true }
-        ]
-      }
-    },
-    {
-      "id": 3,
-      "module": "http:ActionSendData",
-      "version": 3,
-      "parameters": {
-        "handleErrors": true,
-        "useNewZLibDeCompress": true
-      },
-      "mapper": {
         "url": "https://dev.to/api/articles",
         "serializeUrl": false,
         "method": "post",
         "headers": [
-          { "name": "Content-Type", "value": "application/json" },
-          { "name": "api-key", "value": "YOUR_DEVTO_API_KEY" }
+          {
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "name": "api-key",
+            "value": "YOUR_DEVTO_API_KEY"
+          },
+          {
+            "name": "User-Agent",
+            "value": "RagBot/1.0"
+          }
         ],
         "qs": [],
         "bodyType": "raw",
         "contentType": "application/json",
-        "data": "{\"article\":{\"body_markdown\":{{2.candidates[].content.parts[].text | JSON}}}}",
+        "data": "{{1.candidates[].content.parts[].text}}",
         "timeout": "120",
         "shareCookies": false,
         "parseResponse": true,
@@ -137,38 +95,28 @@
         "followAllRedirects": false
       },
       "metadata": {
-        "designer": { "x": 600, "y": 0 },
+        "designer": {
+          "x": 300,
+          "y": 0
+        },
         "restore": {
           "expect": {
-            "method": { "label": "POST" },
-            "bodyType": { "label": "Raw" },
-            "contentType": { "label": "application/json" }
+            "method": {
+              "label": "POST"
+            },
+            "bodyType": {
+              "label": "Raw"
+            },
+            "contentType": {
+              "label": "application/json"
+            }
           },
           "parameters": {
-            "handleErrors": { "label": "Yes" }
+            "handleErrors": {
+              "label": "Yes"
+            }
           }
-        },
-        "parameters": [
-          { "name": "handleErrors", "type": "boolean", "label": "Evaluate all states as errors (except for ok)", "required": true },
-          { "name": "useNewZLibDeCompress", "type": "boolean", "label": "Use new ZLib decompress", "required": true }
-        ],
-        "expect": [
-          { "name": "url", "type": "url", "label": "URL", "required": true },
-          { "name": "serializeUrl", "type": "boolean", "label": "Serialize URL", "required": true },
-          { "name": "method", "type": "select", "label": "Method", "required": true },
-          { "name": "headers", "type": "array", "label": "Headers", "spec": [ { "name": "name", "type": "text", "label": "Name", "required": true }, { "name": "value", "type": "text", "label": "Value" } ] },
-          { "name": "qs", "type": "array", "label": "Query string", "spec": [ { "name": "name", "type": "text", "label": "Name", "required": true }, { "name": "value", "type": "text", "label": "Value" } ] },
-          { "name": "bodyType", "type": "select", "label": "Body type", "required": true },
-          { "name": "contentType", "type": "text", "label": "Content type", "required": true },
-          { "name": "data", "type": "text", "label": "Request content" },
-          { "name": "timeout", "type": "uinteger", "label": "Timeout" },
-          { "name": "shareCookies", "type": "boolean", "label": "Share cookies with other modules", "required": true },
-          { "name": "parseResponse", "type": "boolean", "label": "Parse response", "required": true },
-          { "name": "followRedirect", "type": "boolean", "label": "Follow the redirect", "required": true },
-          { "name": "useQuerystring", "type": "boolean", "label": "Use Multipart/form-data", "required": true },
-          { "name": "rejectUnauthorized", "type": "boolean", "label": "Evaluate error certificates", "required": true },
-          { "name": "followAllRedirects", "type": "boolean", "label": "Follow all redirect", "required": true }
-        ]
+        }
       }
     }
   ],
@@ -186,8 +134,9 @@
       "dlq": false,
       "freshVariables": false
     },
-    "designer": { "orphans": [] },
-    "zone": "eu2.make.com",
+    "designer": {
+      "orphans": []
+    },
     "notes": []
   }
 }
