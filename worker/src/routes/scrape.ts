@@ -77,6 +77,7 @@ scrapeRouter.post(
       // Change-aware short-circuit: the client stored this hash last time
       // and the page hasn't changed → skip the content entirely.
       if (body.ifNoneHash && body.ifNoneHash === contentHash) {
+        c.header("ETag", `"${contentHash}"`);
         return c.json<ScrapeResponse>(
           {
             success: true,
@@ -127,6 +128,7 @@ scrapeRouter.post(
         }
       }
 
+      c.header("ETag", `"${contentHash}"`);
       return c.json<ScrapeResponse>(
         {
           success: true,

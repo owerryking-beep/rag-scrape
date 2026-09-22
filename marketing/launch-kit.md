@@ -140,6 +140,19 @@ markdown api
 - [ ] SaaSHub + thereisanai.com + futurepedia (AI tool directories)
 - [ ] GitHub: topics on the repo — `rag`, `llm`, `markdown`, `scraper`,
       `embeddings`, `mcp-server`, `llms-txt`
+- [ ] API directories: submit `openapi.json` (SwaggerHub, APIs.guru, Postman
+      public network, RapidAPI hub listing)
+
+## 10. Agent-discoverability (shipped — use as a talking point)
+
+RagScrape is machine-onboardable end to end — say this in every pitch:
+- `GET /openapi.json` — OpenAPI 3.1 spec (agent frameworks auto-learn the API)
+- `GET /llms.txt` + `GET /llms-full.txt` — our own docs in llmstxt.org format
+- `GET /robots.txt` — explicitly welcomes GPTBot/ClaudeBot/PerplexityBot
+- `npx rag-scrape mcp` — MCP tools for Claude/agents
+- An agent can self-serve the whole funnel: `POST /register` (free key) →
+  scrape until quota → the 402 message carries the upgrade URL. No human
+  onboarding anywhere in the loop.
 - [ ] npm README already links everything ✓
 
 ## 8. Weekly cadence (the part that decides everything)

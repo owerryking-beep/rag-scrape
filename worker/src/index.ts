@@ -18,6 +18,7 @@ import { scrapeRouter } from "./routes/scrape.js";
 import { checkoutRouter } from "./routes/checkout.js";
 import { webhookRouter } from "./routes/webhook.js";
 import { crawlRouter } from "./routes/crawl.js";
+import { agentRouter } from "./routes/agents.js";
 import { LANDING_HTML } from "./generated/landing-html.js";
 import { CONVERT_HTML } from "./generated/convert-html.js";
 
@@ -49,11 +50,17 @@ app.use(
 
 // The public storefront, served from the API's own domain (no separate
 // hosting needed; same origin = no CORS for the page's own API calls).
-app.get("/", (c) => c.html(LANDING_HTML));
+app.get("/", (c) => {
+  c.header("Cache-Control", "public, max-age=600");
+  return c.html(LANDING_HTML);
+});
 
 // Free no-signup web tool: paste a URL, get Markdown (uses the per-IP demo
 // quota; upgrade path shown inline when it runs out).
-app.get("/convert", (c) => c.html(CONVERT_HTML));
+app.get("/convert", (c) => {
+  c.header("Cache-Control", "public, max-age=600");
+  return c.html(CONVERT_HTML);
+});
 
 app.get("/api", (c) =>
   c.json({
@@ -69,6 +76,7 @@ app.get("/api", (c) =>
       checkout: "POST /create-checkout { email, apiKey?, plan? } (Starter $9 / Pro $19 / Unlimited $49)",
       webhook: "POST /webhook (Paystack or Lemon Squeezy)",
       convert_tool: "GET /convert (free, no signup)",
+      for_agents: "GET /openapi.json · GET /llms.txt · GET /llms-full.txt · GET /robots.txt",
       health: "GET /health",
     },
     plans: { free: "50 reqs/mo", starter: "2,000 reqs/mo ($9)", pro: "10,000 reqs/mo ($19)", unlimited: "1,000,000 reqs/mo ($49)" },
@@ -83,6 +91,7 @@ app.get("/health", (c) =>
 
 app.route("/", scrapeRouter);
 app.route("/", crawlRouter);
+app.route("/", agentRouter);
 app.route("/", checkoutRouter);
 app.route("/", webhookRouter);
 
