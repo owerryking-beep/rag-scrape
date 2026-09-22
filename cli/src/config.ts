@@ -13,8 +13,9 @@ export const CONFIG = {
    * 30 days — anything serious should register a real key.
    */
   DEMO_API_KEY: "demo_rsk_free_tier_2024",
+  CRAWL_TIMEOUT_MS: 300_000,
   REQUEST_TIMEOUT_MS: 30_000,
-  VERSION: "1.0.0",
+  VERSION: "1.1.0",
 } as const;
 
 export interface ApiSuccessResponse {
@@ -30,6 +31,7 @@ export interface ApiSuccessResponse {
     scrapedAt: string;
     contentLength: number;
   };
+  chunks?: ChunkDto[];
 }
 
 export interface ApiErrorResponse {
@@ -39,6 +41,13 @@ export interface ApiErrorResponse {
     message: string;
     details?: string;
   };
+}
+
+export interface ChunkDto {
+  index: number;
+  content: string;
+  headingPath: string[];
+  charCount: number;
 }
 
 export type ApiResponse = ApiSuccessResponse | ApiErrorResponse;

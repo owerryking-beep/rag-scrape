@@ -55,8 +55,23 @@ checkoutRouter.post("/create-checkout", async (c) => {
     );
   }
 
+  if (body.plan !== undefined && body.plan !== "starter" && body.plan !== "pro") {
+    return c.json<ErrorResponse>(
+      {
+        success: false,
+        error: { code: "INVALID_PLAN", message: "'plan' must be \"starter\" or \"pro\"." },
+      },
+      400,
+    );
+  }
+
   try {
-    const checkoutUrl = await createCheckoutSession(c.env, body.email, body.apiKey);
+    const checkoutUrl = await createCheckoutSession(
+      c.env,
+      body.email,
+      body.apiKey,
+      body.plan ?? "pro",
+    );
     return c.json<CheckoutResponse>({ success: true, checkoutUrl }, 200);
   } catch (err) {
     console.error("checkout error:", err);

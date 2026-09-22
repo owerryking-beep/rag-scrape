@@ -7,7 +7,8 @@ import { writeFile, mkdir, readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { CONFIG, type RegisterResponse } from "./config.js";
-import { scrapeUrl, registerEmail } from "./client.js";
+import { scrapeUrl, registerEmail, crawlSite } from "./client.js";
+import { runMcpServer } from "./mcp.js";
 
 const program = new Command();
 
@@ -274,5 +275,92 @@ program
       if (fail === lines.length) process.exit(1);
     },
   );
+
+
+// ── crawl (docs-site → Markdown files + llms.txt) ────────────────────────────
+
+program
+  .command("crawl <url>")
+  .description("Crawl a docs site (same-host) and save every page as Markdown + llms.txt. Each page costs 1 request.")
+  .option("-k, --api-key <key>", "API key (falls back to RAG_SCRAPE_API_KEY)")
+  .option("-b, --base-url <url>", "Override the API base URL")
+  .option("-n, --max-pages <n>", "Max pages to crawl (1–100, default 20)", "20")
+  .option("-d, --output-dir <dir>", "Output directory", "./crawled-docs")
+  .option("--include <prefixes>", "Comma-separated path prefixes to include (e.g. /docs,/reference)")
+  .option("--exclude <prefixes>", "Comma-separated path prefixes to exclude")
+  .option("--llms-txt", "Only print llms.txt to stdout (files are also written unless --quiet)", false)
+  .option("-q, --quiet", "Suppress progress output", false)
+  .action(async (url: string, opts: {
+    apiKey?: string; baseUrl?: string; maxPages: string; outputDir: string;
+    include?: string; exclude?: string; llmsTxt: boolean; quiet: boolean;
+  }) => {
+    const apiKey = opts.apiKey ?? process.env.RAG_SCRAPE_API_KEY ?? CONFIG.DEMO_API_KEY;
+    const baseUrl = resolveBaseUrl(opts);
+    if (isDemoKey(apiKey)) {
+      console.log(chalk.yellow("⚠  Crawling requires a registered key (free: 50/mo)."));
+      console.log(chalk.dim("   npx rag-scrape register <email>"));
+      process.exitCode = 1;
+      return;
+    }
+
+    const maxPages = Math.max(1, Math.min(100, parseInt(opts.maxPages, 10) || 20));
+    const spin = opts.quiet ? null : ora(`Crawling ${url} (up to ${maxPages} pages)…`).start();
+    const res = await crawlSite(url, apiKey, baseUrl, {
+      maxPages,
+      includePaths: opts.include ? opts.include.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
+      excludePaths: opts.exclude ? opts.exclude.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
+    });
+
+    if (!res.success || !res.pages) {
+      spin?.fail();
+      const e = res.error ?? { code: "UNKNOWN", message: "Crawl failed." };
+      console.error(chalk.red(`✗ ${e.code}: ${e.message}`));
+      process.exitCode = 1;
+      return;
+    }
+    spin?.succeed(`Crawled ${res.stats?.crawled ?? res.pages.length} pages`);
+
+    const safeName = (pageUrl: string, i: number): string => {
+      try {
+        const u = new URL(pageUrl);
+        const seg = (u.pathname === "/" ? "index" : u.pathname.replace(/\/+$/, "").split("/").pop() ?? `page-${i}`)
+          .replace(/[^a-zA-Z0-9._-]/g, "_")
+          .slice(0, 60) || `page-${i}`;
+        return `${u.hostname.replace(/[^a-zA-Z0-9.-]/g, "_")}/${seg}.md`;
+      } catch {
+        return `page-${i}.md`;
+      }
+    };
+
+    await mkdir(opts.outputDir, { recursive: true });
+    for (let i = 0; i < res.pages.length; i++) {
+      const p = res.pages[i]!;
+      const rel = safeName(p.url, i);
+      const abs = join(opts.outputDir, rel);
+      await mkdir(abs.substring(0, abs.lastIndexOf("/")), { recursive: true });
+      const frontMatter = `---\ntitle: "${yamlEscape(p.title)}"\nsource: "${p.url}"\nwords: ${p.wordCount}\n---\n\n`;
+      await writeFile(abs, frontMatter + p.markdown + "\n", "utf8");
+      if (!opts.quiet) console.log(chalk.green("  ✔ ") + rel + chalk.dim(` (${p.wordCount} words)`));
+    }
+    await writeFile(join(opts.outputDir, "llms.txt"), res.llmsTxt ?? "", "utf8");
+    if (!opts.quiet) console.log(chalk.green("  ✔ ") + "llms.txt");
+    if (res.stats && res.stats.failed > 0 && !opts.quiet) {
+      console.log(chalk.yellow(`  ⚠ ${res.stats.failed} pages failed`));
+    }
+    if (opts.llmsTxt) console.log("\n" + (res.llmsTxt ?? ""));
+  });
+
+// ── mcp (Model Context Protocol stdio server) ────────────────────────────────
+
+program
+  .command("mcp")
+  .description("Run RagScrape as an MCP stdio server (for Claude Desktop / agents). Tools: rag_scrape, rag_crawl.")
+  .option("-k, --api-key <key>", "API key (falls back to RAG_SCRAPE_API_KEY)")
+  .option("-b, --base-url <url>", "Override the API base URL")
+  .action(async (opts: { apiKey?: string; baseUrl?: string }) => {
+    const apiKey = opts.apiKey ?? process.env.RAG_SCRAPE_API_KEY ?? CONFIG.DEMO_API_KEY;
+    const baseUrl = resolveBaseUrl(opts);
+    await runMcpServer(apiKey, baseUrl);
+  });
 
 program.parse();

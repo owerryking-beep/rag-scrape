@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Free URL to Markdown converter — RagScrape</title>
+<meta name="description" content="Paste a URL, get clean LLM-ready Markdown instantly. Free, no signup. Powered by the RagScrape API.">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:#0b1220; color:#e5e7eb; min-height:100vh; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 40px 20px 80px; }
+  header { display:flex; justify-content:space-between; align-items:center; margin-bottom:48px; }
+  .logo { font-weight:700; font-size:18px; letter-spacing:-.02em; }
+  .logo span { color:#818cf8; }
+  a.top { color:#9ca3af; font-size:14px; text-decoration:none; }
+  a.top:hover { color:#fff; }
+  h1 { font-size: clamp(26px, 5vw, 40px); letter-spacing:-.03em; margin-bottom:12px; }
+  h1 em { font-style:normal; color:#818cf8; }
+  p.sub { color:#9ca3af; margin-bottom:28px; max-width:600px; line-height:1.5; }
+  form { display:flex; gap:10px; margin-bottom:14px; }
+  input { flex:1; padding:14px 16px; border-radius:10px; border:1px solid #374151; background:#111827; color:#fff; font-size:15px; outline:none; }
+  input:focus { border-color:#6366f1; }
+  button { padding:14px 22px; border-radius:10px; border:0; background:#6366f1; color:#fff; font-weight:600; font-size:15px; cursor:pointer; }
+  button:hover { background:#818cf8; }
+  button:disabled { opacity:.6; cursor:wait; }
+  .note { font-size:13px; color:#6b7280; margin-bottom:28px; }
+  .err { display:none; background:#450a0a; border:1px solid #7f1d1d; color:#fca5a5; padding:12px 16px; border-radius:10px; margin-bottom:20px; font-size:14px; line-height:1.5; }
+  .err a { color:#fca5a5; text-decoration:underline; cursor:pointer; }
+  .stats { display:none; gap:16px; margin-bottom:14px; font-size:13px; color:#9ca3af; flex-wrap:wrap; }
+  .stats b { color:#e5e7eb; }
+  pre { display:none; background:#111827; border:1px solid #1f2937; border-radius:12px; padding:20px; font-size:13px; line-height:1.6; overflow:auto; max-height:60vh; white-space:pre-wrap; word-break:break-word; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .actions { display:none; gap:10px; margin-top:14px; }
+  .actions button { background:#1f2937; font-size:13px; padding:10px 16px; }
+  .actions button:hover { background:#374151; }
+  footer { margin-top:64px; color:#4b5563; font-size:13px; line-height:1.6; }
+  footer a { color:#818cf8; text-decoration:none; }
+  dialog { background:#111827; color:#e5e7eb; border:1px solid #374151; border-radius:14px; padding:26px; max-width:420px; width:92%; }
+  dialog::backdrop { background:rgba(0,0,0,.6); }
+  dialog h2 { font-size:18px; margin-bottom:6px; }
+  dialog p { color:#9ca3af; font-size:13px; margin-bottom:16px; line-height:1.5; }
+  dialog input { width:100%; margin-bottom:10px; }
+  dialog button { width:100%; }
+  .key-ok { display:none; background:#052e16; border:1px solid #14532d; color:#86efac; padding:10px 14px; border-radius:10px; font-size:13px; margin-bottom:16px; word-break:break-all; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">rag<span>scrape</span></div>
+    <a class="top" href="/">API &amp; pricing →</a>
+  </header>
+
+  <h1>Any URL → clean <em>Markdown</em>. Free.</h1>
+  <p class="sub">Paste a link, get LLM-ready Markdown — headings, code blocks, links and all. No signup. Powered by the same engine as the RagScrape API.</p>
+
+  <form id="f">
+    <input id="url" type="text" placeholder="https://example.com/docs/page" autocomplete="off" required>
+    <button id="go" type="submit">Convert</button>
+  </form>
+  <p class="note">5 free conversions per device, then grab a free API key (50/month). A key unlocks <b>10,000/month</b> from $9.</p>
+
+  <div id="err" class="err"></div>
+  <div id="stats" class="stats"></div>
+  <pre id="out"></pre>
+  <div class="actions" id="acts">
+    <button id="copy" type="button">Copy Markdown</button>
+    <button id="dl" type="button">Download .md</button>
+  </div>
+
+  <footer>RagScrape turns any public page into structured Markdown for RAG pipelines, agents and knowledge bases. <a href="/">Get an API key →</a></footer>
+</div>
+
+<dialog id="reg">
+  <h2>Out of free conversions</h2>
+  <p>Register a free API key — 50 requests a month, no card. Here it is, instantly:</p>
+  <input id="email" type="email" placeholder="you@example.com">
+  <button id="reggo" type="button">Get my free key</button>
+  <p id="keybox" class="key-ok"></p>
+  <button id="regclose" type="button" style="background:transparent;color:#6b7280;font-weight:400">Later</button>
+</dialog>
+
+<script>
+  var out = document.getElementById('out');
+  var lastMd = '';
+  function api() { return location.origin; }
+  function getKey() { return localStorage.getItem('rs_key') || 'demo_rsk_free_tier_2024'; }
+
+  document.getElementById('f').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var btn = document.getElementById('go');
+    var errBox = document.getElementById('err');
+    var stats = document.getElementById('stats');
+    var acts = document.getElementById('acts');
+    btn.disabled = true; btn.textContent = 'Converting…';
+    errBox.style.display = 'none'; stats.style.display = 'none';
+    out.style.display = 'none'; acts.style.display = 'none';
+    try {
+      var res = await fetch(api() + '/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getKey() },
+        body: JSON.stringify({ url: document.getElementById('url').value.trim() })
+      });
+      var d = await res.json();
+      if (d.success) {
+        lastMd = d.markdown;
+        out.textContent = d.markdown;
+        out.style.display = 'block'; acts.style.display = 'flex';
+        stats.innerHTML = '<span><b>' + (d.metadata.wordCount || 0).toLocaleString() + '</b> words</span>' +
+          '<span><b>' + (d.metadata.contentLength || 0).toLocaleString() + '</b> chars</span>' +
+          '<span>' + (d.metadata.title || '') + '</span>';
+        stats.style.display = 'flex';
+      } else if (res.status === 429 || (d.error && d.error.code === 'DEMO_LIMIT_EXCEEDED')) {
+        document.getElementById('reg').showModal();
+      } else if (res.status === 402) {
+        errBox.innerHTML = 'Monthly key limit reached. Upgrade at <a href="/">rag-scrape pricing</a> ($9 Starter / $19 Pro).';
+        errBox.style.display = 'block';
+      } else {
+        errBox.textContent = (d.error && d.error.message) || 'Could not convert that URL.';
+        errBox.style.display = 'block';
+      }
+    } catch (err) {
+      errBox.textContent = 'Network error — is the API reachable?';
+      errBox.style.display = 'block';
+    }
+    btn.disabled = false; btn.textContent = 'Convert';
+  });
+
+  document.getElementById('reggo').addEventListener('click', async function () {
+    var email = document.getElementById('email').value.trim();
+    var box = document.getElementById('keybox');
+    box.style.display = 'none';
+    try {
+      var res = await fetch(api() + '/register', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      });
+      var d = await res.json();
+      if (d.success) {
+        localStorage.setItem('rs_key', d.apiKey);
+        box.textContent = 'Your key (saved on this device): ' + d.apiKey;
+        box.style.display = 'block';
+      } else {
+        box.textContent = (d.error && d.error.message) || 'Could not register.';
+        box.style.display = 'block';
+      }
+    } catch (e) { box.textContent = 'Network error.'; box.style.display = 'block'; }
+  });
+  document.getElementById('regclose').addEventListener('click', function () { document.getElementById('reg').close(); });
+
+  document.getElementById('copy').addEventListener('click', function () {
+    navigator.clipboard.writeText(lastMd).then(function () {
+      var b = document.getElementById('copy'); var t = b.textContent;
+      b.textContent = 'Copied ✓'; setTimeout(function () { b.textContent = t; }, 1200);
+    });
+  });
+  document.getElementById('dl').addEventListener('click', function () {
+    var host = 'page'; try { host = new URL(document.getElementById('url').value.trim()).hostname; } catch (e) {}
+    var blob = new Blob([lastMd], { type: 'text/markdown' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = host + '.md'; a.click();
+    URL.revokeObjectURL(a.href);
+  });
+</script>
+</body>
+</html>

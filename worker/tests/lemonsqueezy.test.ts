@@ -28,7 +28,8 @@ function mockEnv(): Env {
     LS_API_KEY: "ls_api_test",
     LS_WEBHOOK_SECRET: SECRET,
     LS_STORE_ID: "1",
-    LS_VARIANT_ID: "1",
+    LS_VARIANT_ID_PRO: "10",
+    LS_VARIANT_ID_STARTER: "20",
     LS_TEST_MODE: "",
     CHECKOUT_SUCCESS_URL: "https://worker.test/?checkout=success",
     CHECKOUT_CANCEL_URL: "https://worker.test/?checkout=cancelled",
@@ -175,4 +176,29 @@ test("bad signature makes handleWebhookEvent throw", async () => {
     () => handleWebhookEvent(env, payload, "0".repeat(64)),
     /signature/i,
   );
+});
+
+test("subscription_created with plan=starter upgrades to Starter (2,000)", async () => {
+  const env = mockEnv();
+  const payload = JSON.stringify({
+    meta: {
+      event_name: "subscription_created",
+      custom_data: { api_key: "rsk_starter", email: "s@example.com", plan: "starter" },
+    },
+    data: { type: "subscriptions", id: "9", attributes: { status: "active" } },
+  });
+  await handleWebhookEvent(env, payload, sign(payload));
+  const key = await storedKey(env, "rsk_starter");
+  assert.equal(key.tier, "starter");
+  assert.equal(key.limit, 2_000);
+});
+
+test("re-activated starter subscription stays starter (not forced to pro)", async () => {
+  const env = mockEnv();
+  seedKey(env, { key: "rsk_s2", tier: "starter", limit: 2_000 });
+  const payload = subEvent({ event: "subscription_updated", apiKey: "rsk_s2", status: "active" });
+  await handleWebhookEvent(env, payload, sign(payload));
+  const key = await storedKey(env, "rsk_s2");
+  assert.equal(key.tier, "starter");
+  assert.equal(key.limit, 2_000);
 });

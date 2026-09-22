@@ -23,7 +23,9 @@ DEMO_KEY = "demo_rsk_free_tier_2024"
 #   wrangler secret put LS_WEBHOOK_SECRET
 # STORE_ID / VARIANT_ID are fetched via the LS API once the key exists.
 LS_STORE_ID = "SET_VIA_LS_API"
-LS_VARIANT_ID = "SET_VIA_LS_API"
+# Two variants on the same LS product: Starter $9/mo (2,000 reqs) and Pro $19/mo (10,000 reqs).
+LS_VARIANT_ID_PRO = "SET_VIA_LS_API"
+LS_VARIANT_ID_STARTER = "SET_VIA_LS_API"
 # "true" → create test-mode checkouts (store in Test mode). Leave "" for live.
 LS_TEST_MODE = ""
 

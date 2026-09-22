@@ -11,10 +11,11 @@
  * Webhooks: POST with hex HMAC-SHA256 of the raw body in `X-Signature`.
  */
 
-import type { Env, ApiKeyData } from "../types.js";
+import type { Env, ApiKeyData, Plan } from "../types.js";
 import {
-  PRO_TIER_LIMIT,
   FREE_TIER_LIMIT,
+  TIER_LIMITS,
+  tierForPlan,
   DAY_SECONDS,
 } from "../types.js";
 
@@ -110,10 +111,13 @@ export async function createCheckoutSession(
   env: Env,
   email: string,
   existingApiKey?: string,
+  plan: Plan = "pro",
 ): Promise<string> {
   const apiKey = existingApiKey ?? generateApiKey();
 
   const testMode = (env.LS_TEST_MODE ?? "").trim().toLowerCase() === "true";
+  const variantId = plan === "starter" ? env.LS_VARIANT_ID_STARTER : env.LS_VARIANT_ID_PRO;
+  const planLimit = TIER_LIMITS[tierForPlan(plan)];
 
   const payload = {
     data: {
@@ -121,21 +125,22 @@ export async function createCheckoutSession(
       attributes: {
         ...(testMode ? { test_mode: true } : {}),
         product_options: {
-          enabled_variants: [Number(env.LS_VARIANT_ID)],
+          enabled_variants: [Number(variantId)],
           redirect_url: `${env.CHECKOUT_SUCCESS_URL}&key=${apiKey}`,
           receipt_button_text: "Start scraping",
           receipt_thank_you_note:
-            "Your RagScrape Pro key is active — 10,000 requests/month. It is the rsk_… key you registered with.",
+            `Your RagScrape ${plan === "starter" ? "Starter" : "Pro"} key is active — ` +
+            `${planLimit.toLocaleString("en-US")} requests/month. It is the rsk_… key you registered with.`,
         },
         checkout_options: { embed: false },
         checkout_data: {
           email,
-          custom: { api_key: apiKey, email },
+          custom: { api_key: apiKey, email, plan },
         },
       },
       relationships: {
         store: { data: { type: "stores", id: String(env.LS_STORE_ID) } },
-        variant: { data: { type: "variants", id: String(env.LS_VARIANT_ID) } },
+        variant: { data: { type: "variants", id: String(variantId) } },
       },
     },
   };
@@ -218,11 +223,12 @@ export async function handleWebhookEvent(
         console.error("subscription_created: no api_key in custom_data");
         return { handled: true, type: eventName };
       }
+      const tier = tierForPlan(custom?.plan);
       const keyData: ApiKeyData = {
         key: apiKey,
         email: custom?.email ?? (typeof attrs.user_email === "string" ? attrs.user_email : "unknown"),
-        tier: "pro",
-        limit: PRO_TIER_LIMIT,
+        tier,
+        limit: TIER_LIMITS[tier],
         ...(lsSubscriptionId ? { lsSubscriptionId } : {}),
         createdAt: new Date().toISOString(),
         active: true,
@@ -240,8 +246,9 @@ export async function handleWebhookEvent(
       if (lsSubscriptionId) existing.lsSubscriptionId = lsSubscriptionId;
 
       if (status === "active") {
-        existing.tier = "pro";
-        existing.limit = PRO_TIER_LIMIT;
+        // Re-activation keeps the key's existing tier (starter stays starter).
+        existing.tier = existing.tier === "free" ? "pro" : existing.tier;
+        existing.limit = TIER_LIMITS[existing.tier];
         existing.active = true;
       } else if (status === "cancelled" || status === "expired" || status === "unpaid") {
         existing.tier = "free";

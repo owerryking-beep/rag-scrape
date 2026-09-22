@@ -13,3 +13,12 @@ writeFileSync(
     `export const LANDING_HTML = ${JSON.stringify(html)};\n`,
 );
 console.log(`Embedded landing page (${html.length} bytes) into src/generated/landing-html.ts`);
+
+const convert = readFileSync(new URL("../../tools/convert.html", import.meta.url), "utf8");
+writeFileSync(
+  new URL("convert-html.ts", outDir),
+  "// AUTO-GENERATED from tools/convert.html — do not edit by hand.\n" +
+    "// Regenerate with: node scripts/embed-landing.mjs\n" +
+    `export const CONVERT_HTML = ${JSON.stringify(convert)};\n`,
+);
+console.log(`Embedded convert tool (${convert.length} bytes) into src/generated/convert-html.ts`);

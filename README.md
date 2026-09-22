@@ -7,13 +7,13 @@ RAG pipelines, knowledge bases, and AI agents.
 
 - **API + storefront:** <https://rag-scrape-api.owerryking.workers.dev>
 - **Source:** <https://github.com/owerryking-beep/rag-scrape>
-- Free tier active: 50 reqs/mo per key (`POST /register`); shared demo key
-  `demo_rsk_free_tier_2024` (5 reqs/IP/30 d) for trying it out.
-- Pro checkout ($19/mo, 10 000 reqs/mo): subscription → hosted checkout →
-  HMAC-signed webhook → key auto-upgraded, unit-tested end to end.
-  Payment provider: **Lemon Squeezy** (merchant of record, pays out to Kenya).
-  Switched from Stripe 2026-09-21 — Stripe live activation requires US-only
-  identity + bank details.
+- Plans: **Free** 50 reqs/mo (`POST /register`) · **Starter** $9/mo 2 000 reqs ·
+  **Pro** $19/mo 10 000 reqs (Lemon Squeezy checkout; merchant of record —
+  pays out to Kenya. Switched from Stripe 2026-09-21: Stripe live activation
+  requires US-only identity + bank details.)
+- Free no-signup web tool: <https://rag-scrape-api.owerryking.workers.dev/convert>
+- RAG-ready chunking (`POST /scrape` with `chunk: true`) and a same-host
+  docs crawler (`POST /crawl` → pages + `llms.txt`).
 
 - **Module 1** — Cloudflare Worker API (`worker/`): Hono + `@mozilla/readability`
   (on linkedom's DOM) + a custom Markdown converter. KV-based API keys,
@@ -50,7 +50,7 @@ Everything below was executed, not assumed:
 | Check | Result |
 |---|---|
 | Worker `tsc --noEmit` (strict + noUncheckedIndexedAccess) | ✅ clean |
-| Worker unit tests (converter, extractor, Stripe signature) | ✅ 25/25 |
+| Worker unit tests (converter, extractor, LS webhooks, chunker, crawler) | ✅ 45/45 |
 | `wrangler dev --local` end-to-end | ✅ 200 live scrape, real `example.com` fetch |
 | Auth: no key / bad format / unknown key | ✅ 401 |
 | Demo key: 5 uses then blocked | ✅ 429 `DEMO_LIMIT_EXCEEDED` |
@@ -105,8 +105,10 @@ Local development: `npm run dev` (Miniflare, simulated KV).
 |---|---|---|
 | `GET /` | – | Landing page (HTML storefront; `?key=` / `?checkout=` handled client-side) |
 | `GET /api` | – | Service info (JSON) |
+| `GET /convert` | – | Free no-signup URL→Markdown web tool (demo quota) |
 | `GET /health` | – | Liveness |
-| `POST /scrape` | Bearer key | `{ "url": string }` → `{ success, markdown, metadata }` |
+| `POST /scrape` | Bearer key | `{ url, chunk?, chunkSize? }` → `{ markdown, metadata, chunks? }` |
+| `POST /crawl` | Bearer key | `{ url, maxPages?, includePaths?, excludePaths? }` → `{ pages[], llmsTxt, stats }` (same-host, ≤100 pages, 1 req/page) |
 | `POST /register` | – | `{ "email": string }` → free key (50 reqs/mo) |
 | `POST /create-checkout` | – | `{ "email", "apiKey"? }` → `{ checkoutUrl }` (Lemon Squeezy hosted) |
 | `POST /webhook` | LS `X-Signature` HMAC | `subscription_created/updated/expired`, `subscription_payment_success` |
@@ -183,6 +185,12 @@ node dist/index.js https://example.com -j
 
 # Free key (50/mo)
 node dist/index.js register you@example.com
+
+# Crawl a docs site → ./crawled-docs/<host>/*.md + llms.txt
+node dist/index.js crawl https://docs.example.com --max-pages 30 --include /docs
+
+# MCP server for Claude Desktop / agents (tools: rag_scrape, rag_crawl)
+node dist/index.js mcp --api-key rsk_…
 
 # Batch: one URL per line, # comments allowed
 node dist/index.js batch urls.txt -d ./docs --delay 1000

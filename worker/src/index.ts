@@ -17,7 +17,9 @@ import { generateApiKey } from "./services/lemonsqueezy.js";
 import { scrapeRouter } from "./routes/scrape.js";
 import { checkoutRouter } from "./routes/checkout.js";
 import { webhookRouter } from "./routes/webhook.js";
+import { crawlRouter } from "./routes/crawl.js";
 import { LANDING_HTML } from "./generated/landing-html.js";
+import { CONVERT_HTML } from "./generated/convert-html.js";
 
 const app = new Hono<HonoEnv>();
 
@@ -49,19 +51,26 @@ app.use(
 // hosting needed; same origin = no CORS for the page's own API calls).
 app.get("/", (c) => c.html(LANDING_HTML));
 
+// Free no-signup web tool: paste a URL, get Markdown (uses the per-IP demo
+// quota; upgrade path shown inline when it runs out).
+app.get("/convert", (c) => c.html(CONVERT_HTML));
+
 app.get("/api", (c) =>
   c.json({
     service: "rag-scrape-api",
-    version: "1.0.0",
+    version: "2.0.0",
     status: "healthy",
     docs: "https://rag-scrape-api.owerryking.workers.dev",
     endpoints: {
-      scrape: "POST /scrape",
+      scrape: "POST /scrape { url, chunk?, chunkSize? }",
+      crawl: "POST /crawl { url, maxPages?, includePaths?, excludePaths? } → pages[] + llmsTxt",
       register: "POST /register",
-      checkout: "POST /create-checkout",
-      webhook: "POST /webhook",
+      checkout: "POST /create-checkout { email, apiKey?, plan? } (starter $9 / pro $19)",
+      webhook: "POST /webhook (Lemon Squeezy)",
+      convert_tool: "GET /convert (free, no signup)",
       health: "GET /health",
     },
+    plans: { free: "50 reqs/mo", starter: "2,000 reqs/mo ($9)", pro: "10,000 reqs/mo ($19)" },
   }),
 );
 
@@ -72,6 +81,7 @@ app.get("/health", (c) =>
 // ── Route mounts ─────────────────────────────────────────────────────────────
 
 app.route("/", scrapeRouter);
+app.route("/", crawlRouter);
 app.route("/", checkoutRouter);
 app.route("/", webhookRouter);
 

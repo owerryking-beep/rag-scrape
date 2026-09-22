@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import type { HonoEnv, ScrapeRequest, ScrapeResponse } from "../types.js";
 import { fetchAndExtract, FetchError } from "../services/extractor.js";
 import { htmlToMarkdown, countWords } from "../services/converter.js";
+import { chunkMarkdown } from "../services/chunker.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { rateLimitMiddleware } from "../middleware/rate-limit.js";
 
@@ -63,6 +64,12 @@ scrapeRouter.post(
       const markdown = htmlToMarkdown(extracted.htmlContent, extracted.sourceUrl);
       const wordCount = countWords(markdown);
 
+      // Optional RAG-ready chunking (heading-aligned, fence-safe).
+      const chunks =
+        body.chunk === true
+          ? chunkMarkdown(markdown, body.chunkSize ?? 4000)
+          : undefined;
+
       return c.json<ScrapeResponse>(
         {
           success: true,
@@ -77,6 +84,7 @@ scrapeRouter.post(
             scrapedAt: new Date().toISOString(),
             contentLength: markdown.length,
           },
+          ...(chunks ? { chunks } : {}),
         },
         200,
       );

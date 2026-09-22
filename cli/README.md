@@ -70,3 +70,48 @@ npx rag-scrape batch urls.txt --api-key "$RAG_SCRAPE_API_KEY"
 ## License
 
 MIT
+
+## Crawl a docs site
+
+```bash
+npx rag-scrape crawl https://docs.example.com --include /docs --max-pages 30
+# → ./crawled-docs/<host>/*.md  +  ./crawled-docs/llms.txt
+```
+
+Same-host BFS crawler with `--include`/`--exclude` path-prefix filters. Every
+successfully crawled page costs 1 request against your monthly quota (free
+key = 50 pages/mo). `--llms-txt` also prints the generated `llms.txt`.
+
+## MCP server (Claude Desktop, agents)
+
+```bash
+npx rag-scrape mcp --api-key rsk_…
+```
+
+Runs a [Model Context Protocol](https://modelcontextprotocol.io) stdio server
+exposing two tools: `rag_scrape` (single URL → Markdown, optional RAG chunks)
+and `rag_crawl` (docs-site crawl + llms.txt). Example `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "rag-scrape": {
+      "command": "npx",
+      "args": ["-y", "rag-scrape", "mcp"],
+      "env": { "RAG_SCRAPE_API_KEY": "rsk_…" }
+    }
+  }
+}
+```
+
+## RAG-ready chunking
+
+```bash
+curl -s https://rag-scrape-api.owerryking.workers.dev/scrape \
+  -H "Authorization: Bearer $RAG_SCRAPE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com/docs","chunk":true,"chunkSize":4000}'
+```
+
+`chunks[]` aligns to headings, never breaks code fences, and carries
+`headingPath` for citation metadata — ready for your vector store.
