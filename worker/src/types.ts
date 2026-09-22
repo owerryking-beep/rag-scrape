@@ -9,6 +9,12 @@ export interface Env {
   LS_VARIANT_ID_PRO: string;
   LS_VARIANT_ID_STARTER: string;
   LS_VARIANT_ID_UNLIMITED: string;
+  // ── Payment provider switch: "paystack" | "lemonsqueezy" | "" (unconfigured)
+  PAYMENT_PROVIDER: string;
+  PAYSTACK_SECRET_KEY: string;
+  PS_PLAN_STARTER: string;
+  PS_PLAN_PRO: string;
+  PS_PLAN_UNLIMITED: string;
   /** Workers AI binding (optional at type level; deploy adds it). */
   AI?: { run: (model: string, input: Record<string, unknown>) => Promise<unknown> };
   LS_TEST_MODE: string;
@@ -28,7 +34,8 @@ export interface ApiKeyData {
   email: string;
   tier: Tier;
   limit: number;
-  lsSubscriptionId?: string;
+  /** Provider-agnostic subscription/transaction id. */
+  subscriptionId?: string;
   createdAt: string;
   active: boolean;
 }

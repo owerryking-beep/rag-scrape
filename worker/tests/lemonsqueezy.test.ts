@@ -121,7 +121,7 @@ test("subscription_created upgrades the key to Pro", async () => {
   const key = await storedKey(env, "rsk_new");
   assert.equal(key.tier, "pro");
   assert.equal(key.limit, 10_000);
-  assert.equal(key.lsSubscriptionId, "77");
+  assert.equal(key.subscriptionId, "77");
   assert.equal(key.email, "buyer@example.com");
 });
 

@@ -46,3 +46,13 @@ id = "2f83988970b945328c6a6d8cac711e9e"
 # Workers AI — powers embed:true (bge-small-en-v1.5, 384-dim) on paid plans.
 [ai]
 binding = "AI"
+
+# ── Payment provider switch ──────────────────────────────────────────────────
+# "paystack" | "lemonsqueezy" | "" (nothing configured). Paystack Kenya needs
+# only a national ID + M-Pesa number for activation; test mode needs no KYC.
+PAYMENT_PROVIDER = ""
+# Plan codes are created via the Paystack API and pasted here (PLN_…).
+PS_PLAN_STARTER = "SET_VIA_PAYSTACK_API"
+PS_PLAN_PRO = "SET_VIA_PAYSTACK_API"
+PS_PLAN_UNLIMITED = "SET_VIA_PAYSTACK_API"
+# Paystack KES pricing (amounts in KES; the API charges subunits internally).

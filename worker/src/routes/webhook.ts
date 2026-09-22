@@ -1,11 +1,15 @@
 import { Hono } from "hono";
 import type { HonoEnv, ErrorResponse, WebhookAck } from "../types.js";
-import { handleWebhookEvent } from "../services/lemonsqueezy.js";
+import { handleWebhookEvent as lsHandleWebhook } from "../services/lemonsqueezy.js";
+import { handleWebhookEvent as psHandleWebhook } from "../services/paystack.js";
 
 export const webhookRouter = new Hono<HonoEnv>();
 
 webhookRouter.post("/webhook", async (c) => {
-  const signature = c.req.header("X-Signature");
+  // Paystack signs with x-paystack-signature (HMAC-SHA512); Lemon Squeezy
+  // with X-Signature (HMAC-SHA256). Route on whichever header is present.
+  const signature =
+    c.req.header("x-paystack-signature") ?? c.req.header("X-Signature");
 
   if (!signature) {
     return c.json<ErrorResponse>(
@@ -34,7 +38,10 @@ webhookRouter.post("/webhook", async (c) => {
   }
 
   try {
-    const result = await handleWebhookEvent(c.env, payload, signature);
+    const isPaystack = c.req.header("x-paystack-signature") !== undefined;
+    const result = isPaystack
+      ? await psHandleWebhook(c.env, payload, signature)
+      : await lsHandleWebhook(c.env, payload, signature);
     return c.json<WebhookAck>(
       { received: true, type: result.type, handled: result.handled },
       200,

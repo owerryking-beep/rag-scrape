@@ -5,7 +5,8 @@ import type {
   CheckoutResponse,
   ErrorResponse,
 } from "../types.js";
-import { createCheckoutSession } from "../services/lemonsqueezy.js";
+import { createCheckoutSession as lsCreateCheckout } from "../services/lemonsqueezy.js";
+import { createCheckoutSession as psCreateCheckout } from "../services/paystack.js";
 
 export const checkoutRouter = new Hono<HonoEnv>();
 
@@ -71,12 +72,11 @@ checkoutRouter.post("/create-checkout", async (c) => {
   }
 
   try {
-    const checkoutUrl = await createCheckoutSession(
-      c.env,
-      body.email,
-      body.apiKey,
-      body.plan ?? "pro",
-    );
+    const provider = (c.env.PAYMENT_PROVIDER ?? "").trim().toLowerCase();
+    const checkoutUrl =
+      provider === "paystack"
+        ? await psCreateCheckout(c.env, body.email, body.apiKey, body.plan ?? "pro")
+        : await lsCreateCheckout(c.env, body.email, body.apiKey, body.plan ?? "pro");
     return c.json<CheckoutResponse>({ success: true, checkoutUrl }, 200);
   } catch (err) {
     console.error("checkout error:", err);

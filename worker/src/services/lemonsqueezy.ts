@@ -219,7 +219,7 @@ export async function handleWebhookEvent(
   const custom = event.meta?.custom_data;
   const apiKey = custom?.api_key;
   const attrs = event.data?.attributes ?? {};
-  const lsSubscriptionId = typeof event.data?.id === "string" ? event.data.id : undefined;
+  const subscriptionId = typeof event.data?.id === "string" ? event.data.id : undefined;
   const status = typeof attrs.status === "string" ? attrs.status : undefined;
 
   switch (eventName) {
@@ -235,7 +235,7 @@ export async function handleWebhookEvent(
         email: custom?.email ?? (typeof attrs.user_email === "string" ? attrs.user_email : "unknown"),
         tier,
         limit: TIER_LIMITS[tier],
-        ...(lsSubscriptionId ? { lsSubscriptionId } : {}),
+        ...(subscriptionId ? { subscriptionId } : {}),
         createdAt: new Date().toISOString(),
         active: true,
       };
@@ -249,7 +249,7 @@ export async function handleWebhookEvent(
       if (!apiKey) return { handled: true, type: eventName };
       const existing = await loadKeyData(env, apiKey);
       if (!existing) return { handled: true, type: eventName };
-      if (lsSubscriptionId) existing.lsSubscriptionId = lsSubscriptionId;
+      if (subscriptionId) existing.subscriptionId = subscriptionId;
 
       if (status === "active") {
         // Re-activation keeps the key's existing tier (starter stays starter).
