@@ -42,6 +42,13 @@ then), don't fight it — build the 3 bubbles by hand, it's 10 minutes:
 | 2 | **HTTP → Make a request** | URL `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=YOUR_GEMINI_API_KEY`, POST, body `{"contents":[{"parts":[{"text":"{{1.prompt}}"}]}]}` |
 | 3 | **HTTP → Make a request** | URL `https://dev.to/api/articles`, POST, headers `api-key: YOUR_DEVTO_API_KEY` + `Content-Type: application/json`, body `{"article":{"body_markdown":{{2.candidates[].content.parts[].text}}}}` (map the Gemini text field by clicking it) |
 
+> **Tested end-to-end:** the exact pipeline below already produced a live
+> article — "Stop Splitting by 500 Tokens: Why Heading-Aligned Chunking Wins
+> RAG" on dev.to (2026-09-22). Gemini occasionally 503s; a retry fixes it
+> (Make auto-retries once; a skipped day self-heals the next day).
+> If a publish ever fails with `403 Forbidden Bots`, add a header
+> `User-Agent: RagBot/1.0` to bubble 3.
+
 ### Step 3 — Paste your two keys
 
 1. Open **bubble 2** → replace `YOUR_GEMINI_API_KEY` in the URL with your
