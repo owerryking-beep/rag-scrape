@@ -6,8 +6,10 @@ compatibility_date = "2024-05-29"
 compatibility_flags = ["nodejs_compat"]
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Replace ALL placeholder values before deploying.
-# See the Deployment Checklist in the repository README.
+# All non-secret configuration lives in [vars] — everything below this table
+# ([[kv_namespaces], [ai]) is a different TOML table, so keys placed after it
+# would NOT be env vars. (This exact mistake cost us an evening — keep [vars]
+# as the FIRST table and put every new var inside it.)
 # ──────────────────────────────────────────────────────────────────────────────
 
 [vars]
@@ -15,25 +17,34 @@ compatibility_flags = ["nodejs_compat"]
 # Anyone can use it, so it is hard-capped at 5 requests per IP per 30 days.
 DEMO_KEY = "demo_rsk_free_tier_2024"
 
-# ── Payments: Lemon Squeezy (since 2026-09-21) ───────────────────────────────
-# Stripe live activation requires US-only identity/bank details, which blocked
-# the Kenya-based account; Lemon Squeezy is the merchant of record and pays
-# out to Kenya. Secrets (never commit):
-#   wrangler secret put LS_API_KEY
-#   wrangler secret put LS_WEBHOOK_SECRET
-# STORE_ID / VARIANT_ID are fetched via the LS API once the key exists.
+# The landing page is served by this same worker at "/", so checkout
+# returns to it; the page reads ?key= / ?checkout= from the query string.
+CHECKOUT_SUCCESS_URL = "https://rag-scrape-api.owerryking.workers.dev/?checkout=success"
+CHECKOUT_CANCEL_URL = "https://rag-scrape-api.owerryking.workers.dev/?checkout=cancelled"
+
+# ── Payment provider switch ──────────────────────────────────────────────────
+# "paystack" | "lemonsqueezy" | "" (nothing configured).
+# Paystack (chosen 2026-09-22): Kenya-native, M-Pesa payouts, light KYC.
+# Lemon Squeezy code stays available as an alternative provider.
+PAYMENT_PROVIDER = "paystack"
+# Plan codes (created via the Paystack API, test mode).
+PS_PLAN_STARTER = "PLN_c59t4737wkp9vym"     # KES 1,200/mo
+PS_PLAN_PRO = "PLN_j271nif737eiglu"         # KES 2,500/mo
+PS_PLAN_UNLIMITED = "PLN_wmbez34u3xsflgh"   # KES 6,500/mo
+
+# ── Lemon Squeezy (dormant alternative provider) ─────────────────────────────
+# Secrets: LS_API_KEY, LS_WEBHOOK_SECRET (wrangler secret put …).
 LS_STORE_ID = "SET_VIA_LS_API"
-# Two variants on the same LS product: Starter $9/mo (2,000 reqs) and Pro $19/mo (10,000 reqs).
 LS_VARIANT_ID_PRO = "SET_VIA_LS_API"
 LS_VARIANT_ID_STARTER = "SET_VIA_LS_API"
 LS_VARIANT_ID_UNLIMITED = "SET_VIA_LS_API"
 # "true" → create test-mode checkouts (store in Test mode). Leave "" for live.
 LS_TEST_MODE = ""
 
-# The landing page is served by this same worker at "/", so checkout
-# returns to it; the page reads ?key= / ?checkout= from the query string.
-CHECKOUT_SUCCESS_URL = "https://rag-scrape-api.owerryking.workers.dev/?checkout=success"
-CHECKOUT_CANCEL_URL = "https://rag-scrape-api.owerryking.workers.dev/?checkout=cancelled"
+# Secrets — set via CLI, never commit:
+#   wrangler secret put PAYSTACK_SECRET_KEY
+#   wrangler secret put LS_API_KEY
+#   wrangler secret put LS_WEBHOOK_SECRET
 
 [[kv_namespaces]]
 binding = "API_KEYS"
@@ -46,13 +57,3 @@ id = "2f83988970b945328c6a6d8cac711e9e"
 # Workers AI — powers embed:true (bge-small-en-v1.5, 384-dim) on paid plans.
 [ai]
 binding = "AI"
-
-# ── Payment provider switch ──────────────────────────────────────────────────
-# "paystack" | "lemonsqueezy" | "" (nothing configured). Paystack Kenya needs
-# only a national ID + M-Pesa number for activation; test mode needs no KYC.
-PAYMENT_PROVIDER = ""
-# Plan codes are created via the Paystack API and pasted here (PLN_…).
-PS_PLAN_STARTER = "SET_VIA_PAYSTACK_API"
-PS_PLAN_PRO = "SET_VIA_PAYSTACK_API"
-PS_PLAN_UNLIMITED = "SET_VIA_PAYSTACK_API"
-# Paystack KES pricing (amounts in KES; the API charges subunits internally).
