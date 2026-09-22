@@ -55,11 +55,16 @@ checkoutRouter.post("/create-checkout", async (c) => {
     );
   }
 
-  if (body.plan !== undefined && body.plan !== "starter" && body.plan !== "pro") {
+  if (
+    body.plan !== undefined &&
+    body.plan !== "starter" &&
+    body.plan !== "pro" &&
+    body.plan !== "unlimited"
+  ) {
     return c.json<ErrorResponse>(
       {
         success: false,
-        error: { code: "INVALID_PLAN", message: "'plan' must be \"starter\" or \"pro\"." },
+        error: { code: "INVALID_PLAN", message: "'plan' must be \"starter\", \"pro\" or \"unlimited\"." },
       },
       400,
     );

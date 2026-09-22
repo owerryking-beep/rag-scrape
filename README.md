@@ -7,10 +7,19 @@ RAG pipelines, knowledge bases, and AI agents.
 
 - **API + storefront:** <https://rag-scrape-api.owerryking.workers.dev>
 - **Source:** <https://github.com/owerryking-beep/rag-scrape>
-- Plans: **Free** 50 reqs/mo (`POST /register`) · **Starter** $9/mo 2 000 reqs ·
-  **Pro** $19/mo 10 000 reqs (Lemon Squeezy checkout; merchant of record —
+- Plans: **Free** 50/mo · **Starter** $9/mo 2 000 · **Pro** $19/mo 10 000 ·
+  **Unlimited** $49/mo 1 000 000 (Lemon Squeezy checkout; merchant of record —
   pays out to Kenya. Switched from Stripe 2026-09-21: Stripe live activation
   requires US-only identity + bank details.)
+
+### The gaps we fill (why this isn't "another scraper")
+
+| Gap | RagScrape | Typical tools |
+|---|---|---|
+| Sites have no `/llms.txt` | `POST /llms-txt` crawls & generates one | — |
+| Re-indexing re-pays for unchanged pages | `contentHash` + `ifNoneHash` → `unchanged:true`, zero content tokens | re-scrape & re-embed everything |
+| LLM context tokens wasted on links/images | `stripLinks` / `stripImages` (fence-aware) | — |
+| Scrape → chunk → embed = 3 vendors | `embed: true` → chunks with 384-dim vectors in one call (Workers AI) | stitch it yourself |
 - Free no-signup web tool: <https://rag-scrape-api.owerryking.workers.dev/convert>
 - RAG-ready chunking (`POST /scrape` with `chunk: true`) and a same-host
   docs crawler (`POST /crawl` → pages + `llms.txt`).
@@ -107,8 +116,14 @@ Local development: `npm run dev` (Miniflare, simulated KV).
 | `GET /api` | – | Service info (JSON) |
 | `GET /convert` | – | Free no-signup URL→Markdown web tool (demo quota) |
 | `GET /health` | – | Liveness |
+
+`POST /scrape` extras: `chunk`/`chunkSize` (heading-aligned, fence-safe),
+`embed: true` (chunks gain 384-dim `embedding`, Workers AI bge-small),
+`stripLinks`/`stripImages` (token slimming), `ifNoneHash` (change-aware:
+returns `unchanged: true` + `contentHash` when the page hasn't changed).
 | `POST /scrape` | Bearer key | `{ url, chunk?, chunkSize? }` → `{ markdown, metadata, chunks? }` |
 | `POST /crawl` | Bearer key | `{ url, maxPages?, includePaths?, excludePaths? }` → `{ pages[], llmsTxt, stats }` (same-host, ≤100 pages, 1 req/page) |
+| `POST /llms-txt` | Bearer key | same input → `{ llmsTxt, stats }` only (no page payloads) |
 | `POST /register` | – | `{ "email": string }` → free key (50 reqs/mo) |
 | `POST /create-checkout` | – | `{ "email", "apiKey"? }` → `{ checkoutUrl }` (Lemon Squeezy hosted) |
 | `POST /webhook` | LS `X-Signature` HMAC | `subscription_created/updated/expired`, `subscription_payment_success` |

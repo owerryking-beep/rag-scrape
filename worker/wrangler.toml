@@ -26,6 +26,7 @@ LS_STORE_ID = "SET_VIA_LS_API"
 # Two variants on the same LS product: Starter $9/mo (2,000 reqs) and Pro $19/mo (10,000 reqs).
 LS_VARIANT_ID_PRO = "SET_VIA_LS_API"
 LS_VARIANT_ID_STARTER = "SET_VIA_LS_API"
+LS_VARIANT_ID_UNLIMITED = "SET_VIA_LS_API"
 # "true" → create test-mode checkouts (store in Test mode). Leave "" for live.
 LS_TEST_MODE = ""
 
@@ -41,3 +42,7 @@ id = "0fb0f0a155734503b24f717c9190ca8d"
 [[kv_namespaces]]
 binding = "RATE_LIMITS"
 id = "2f83988970b945328c6a6d8cac711e9e"
+
+# Workers AI — powers embed:true (bge-small-en-v1.5, 384-dim) on paid plans.
+[ai]
+binding = "AI"

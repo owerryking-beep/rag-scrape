@@ -58,19 +58,20 @@ app.get("/convert", (c) => c.html(CONVERT_HTML));
 app.get("/api", (c) =>
   c.json({
     service: "rag-scrape-api",
-    version: "2.0.0",
+    version: "2.1.0",
     status: "healthy",
     docs: "https://rag-scrape-api.owerryking.workers.dev",
     endpoints: {
-      scrape: "POST /scrape { url, chunk?, chunkSize? }",
+      scrape: "POST /scrape { url, chunk?, chunkSize?, embed?, stripLinks?, stripImages?, ifNoneHash? }",
       crawl: "POST /crawl { url, maxPages?, includePaths?, excludePaths? } → pages[] + llmsTxt",
+      llms_txt: "POST /llms-txt { url, maxPages? } → llms.txt only (cheap)",
       register: "POST /register",
       checkout: "POST /create-checkout { email, apiKey?, plan? } (starter $9 / pro $19)",
       webhook: "POST /webhook (Lemon Squeezy)",
       convert_tool: "GET /convert (free, no signup)",
       health: "GET /health",
     },
-    plans: { free: "50 reqs/mo", starter: "2,000 reqs/mo ($9)", pro: "10,000 reqs/mo ($19)" },
+    plans: { free: "50 reqs/mo", starter: "2,000 reqs/mo ($9)", pro: "10,000 reqs/mo ($19)", unlimited: "1,000,000 reqs/mo ($49)" },
   }),
 );
 

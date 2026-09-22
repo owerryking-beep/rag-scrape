@@ -202,3 +202,28 @@ test("re-activated starter subscription stays starter (not forced to pro)", asyn
   assert.equal(key.tier, "starter");
   assert.equal(key.limit, 2_000);
 });
+
+test("subscription_created with plan=unlimited upgrades to Unlimited (1,000,000)", async () => {
+  const env = mockEnv();
+  const payload = JSON.stringify({
+    meta: {
+      event_name: "subscription_created",
+      custom_data: { api_key: "rsk_unl", email: "u@example.com", plan: "unlimited" },
+    },
+    data: { type: "subscriptions", id: "11", attributes: { status: "active" } },
+  });
+  await handleWebhookEvent(env, payload, sign(payload));
+  const key = await storedKey(env, "rsk_unl");
+  assert.equal(key.tier, "unlimited");
+  assert.equal(key.limit, 1_000_000);
+});
+
+test("re-activated unlimited subscription stays unlimited", async () => {
+  const env = mockEnv();
+  seedKey(env, { key: "rsk_u2", tier: "unlimited", limit: 1_000_000 });
+  const payload = subEvent({ event: "subscription_updated", apiKey: "rsk_u2", status: "active" });
+  await handleWebhookEvent(env, payload, sign(payload));
+  const key = await storedKey(env, "rsk_u2");
+  assert.equal(key.tier, "unlimited");
+  assert.equal(key.limit, 1_000_000);
+});

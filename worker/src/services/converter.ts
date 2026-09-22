@@ -337,3 +337,42 @@ function cleanMarkdown(md: string): string {
 
   return out;
 }
+
+/** SHA-256 of `text`, first 16 hex chars — stable content fingerprint for
+ * change-aware re-crawling (client stores it, sends it back as ifNoneHash). */
+export async function sha256Hex(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .slice(0, 16);
+}
+
+/**
+ * Markdown-level token slimming (post-conversion, fence-aware):
+ *  – stripImages: `![alt](src)` → `alt` (meaning kept, tokens saved)
+ *  – stripLinks:  `[text](href)` → `text`
+ */
+export function slimMarkdown(
+  markdown: string,
+  opts: { stripLinks?: boolean; stripImages?: boolean },
+): string {
+  const out: string[] = [];
+  let inFence = false;
+  for (const line of markdown.split("\n")) {
+    if (/^\s*(```|~~~)/.test(line)) inFence = !inFence;
+    let l = line;
+    if (!inFence) {
+      if (opts.stripImages) l = l.replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1");
+      if (opts.stripLinks) l = l.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
+    }
+    out.push(l);
+  }
+  return (
+    out
+      .join("\n")
+      .replace(/[ \t]+$/gm, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim() + "\n"
+  );
+}

@@ -12,18 +12,11 @@
  *
  * The result is stable for a given input: same page → same chunks → same
  * embedding IDs, which matters for incremental re-indexing.
+ *
+ * Chunk shape is the shared type from ../types.js (it optionally carries a
+ * Workers-AI embedding when /scrape runs with embed:true).
  */
-
-export interface Chunk {
-  /** Zero-based, sequential. */
-  index: number;
-  /** The chunk text (headings included, exactly as they appeared). */
-  content: string;
-  /** Chain of heading texts above this chunk, e.g. ["Setup", "Local dev"]. */
-  headingPath: string[];
-  /** content.length (characters; ≈ tokens/4 for English). */
-  charCount: number;
-}
+import type { Chunk } from "../types.js";
 
 interface Block {
   kind: "heading" | "content";

@@ -8,6 +8,9 @@ export interface Env {
   LS_STORE_ID: string;
   LS_VARIANT_ID_PRO: string;
   LS_VARIANT_ID_STARTER: string;
+  LS_VARIANT_ID_UNLIMITED: string;
+  /** Workers AI binding (optional at type level; deploy adds it). */
+  AI?: { run: (model: string, input: Record<string, unknown>) => Promise<unknown> };
   LS_TEST_MODE: string;
   CHECKOUT_SUCCESS_URL: string;
   CHECKOUT_CANCEL_URL: string;
@@ -16,9 +19,9 @@ export interface Env {
 
 // ── KV value schemas ─────────────────────────────────────────────────────────
 
-export type Tier = "free" | "starter" | "pro";
+export type Tier = "free" | "starter" | "pro" | "unlimited";
 /** Paid plans (Lemon Squeezy variants). */
-export type Plan = "starter" | "pro";
+export type Plan = "starter" | "pro" | "unlimited";
 
 export interface ApiKeyData {
   key: string;
@@ -43,6 +46,15 @@ export interface ScrapeRequest {
   chunk?: boolean;
   /** Target max chars per chunk (200–16000, default 4000 ≈ 1k tokens). */
   chunkSize?: number;
+  /** Also embed every chunk with Workers AI (bge-small, 384-dim). Implies chunk. */
+  embed?: boolean;
+  /** Token slimming: drop images (keep alt text). */
+  stripImages?: boolean;
+  /** Token slimming: unwrap links (keep link text). */
+  stripLinks?: boolean;
+  /** Change-aware scraping: send the previously stored contentHash — if the
+   * page is unchanged you get { unchanged: true } and zero content tokens. */
+  ifNoneHash?: string;
 }
 
 export interface Chunk {
@@ -50,6 +62,8 @@ export interface Chunk {
   content: string;
   headingPath: string[];
   charCount: number;
+  /** 384-dim bge-small embedding, present when the request set embed:true. */
+  embedding?: number[];
 }
 
 export interface ScrapeMetadata {
@@ -67,8 +81,15 @@ export interface ScrapeSuccessResponse {
   success: true;
   markdown: string;
   metadata: ScrapeMetadata;
-  /** Present only when the request asked for `chunk: true`. */
+  /** Present only when the request asked for `chunk: true` / `embed: true`. */
   chunks?: Chunk[];
+  /** SHA-256 (first 16 hex chars) of the returned markdown — store it and
+   * send it back as ifNoneHash next run to detect unchanged pages. */
+  contentHash?: string;
+  /** true → page unchanged since ifNoneHash; markdown/chunks omitted. */
+  unchanged?: boolean;
+  /** Present (with chunks) when the Workers AI embedding call failed. */
+  embedError?: string;
 }
 
 export interface ErrorBody {
@@ -133,6 +154,20 @@ export interface CrawledPageDto {
   wordCount: number;
 }
 
+export interface LlmsTxtRequest {
+  url: string;
+  maxPages?: number;
+  includePaths?: string[];
+  excludePaths?: string[];
+}
+
+export interface LlmsTxtSuccessResponse {
+  success: true;
+  llmsTxt: string;
+  stats: { crawled: number; failed: number; requested: number };
+  errors: Array<{ url: string; error: string }>;
+}
+
 export interface CrawlSuccessResponse {
   success: true;
   pages: CrawledPageDto[];
@@ -156,14 +191,19 @@ export type HonoEnv = {
 export const FREE_TIER_LIMIT = 50;
 export const STARTER_TIER_LIMIT = 2_000;
 export const PRO_TIER_LIMIT = 10_000;
+/** Effectively unlimited: ~1 M pages/month, far above manual-use ceilings. */
+export const UNLIMITED_TIER_LIMIT = 1_000_000;
 export const TIER_LIMITS: Record<Tier, number> = {
   free: FREE_TIER_LIMIT,
   starter: STARTER_TIER_LIMIT,
   pro: PRO_TIER_LIMIT,
+  unlimited: UNLIMITED_TIER_LIMIT,
 };
 
 export function tierForPlan(plan: string | undefined | null): Tier {
-  return plan === "starter" ? "starter" : "pro";
+  if (plan === "starter") return "starter";
+  if (plan === "unlimited") return "unlimited";
+  return "pro";
 }
 
 export const DEMO_KEY_LIMIT = 5;

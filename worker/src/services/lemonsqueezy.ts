@@ -116,7 +116,13 @@ export async function createCheckoutSession(
   const apiKey = existingApiKey ?? generateApiKey();
 
   const testMode = (env.LS_TEST_MODE ?? "").trim().toLowerCase() === "true";
-  const variantId = plan === "starter" ? env.LS_VARIANT_ID_STARTER : env.LS_VARIANT_ID_PRO;
+  const variantId =
+    plan === "starter"
+      ? env.LS_VARIANT_ID_STARTER
+      : plan === "unlimited"
+        ? env.LS_VARIANT_ID_UNLIMITED
+        : env.LS_VARIANT_ID_PRO;
+  const planLabel = plan === "starter" ? "Starter" : plan === "unlimited" ? "Unlimited" : "Pro";
   const planLimit = TIER_LIMITS[tierForPlan(plan)];
 
   const payload = {
@@ -129,7 +135,7 @@ export async function createCheckoutSession(
           redirect_url: `${env.CHECKOUT_SUCCESS_URL}&key=${apiKey}`,
           receipt_button_text: "Start scraping",
           receipt_thank_you_note:
-            `Your RagScrape ${plan === "starter" ? "Starter" : "Pro"} key is active — ` +
+            `Your RagScrape ${planLabel} key is active — ` +
             `${planLimit.toLocaleString("en-US")} requests/month. It is the rsk_… key you registered with.`,
         },
         checkout_options: { embed: false },

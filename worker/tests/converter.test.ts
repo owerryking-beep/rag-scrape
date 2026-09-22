@@ -114,3 +114,40 @@ test("countWords ignores markdown syntax", () => {
   assert.equal(countWords(""), 0);
   assert.equal(countWords("one two three"), 3);
 });
+
+// ── slimMarkdown + sha256Hex ─────────────────────────────────────────────────
+import { slimMarkdown, sha256Hex } from "../src/services/converter.js";
+
+test("slimMarkdown strips images but keeps alt text", () => {
+  const md = "Before ![Chart of revenue](/img.png) after.\n";
+  assert.equal(
+    slimMarkdown(md, { stripImages: true }),
+    "Before Chart of revenue after.\n",
+  );
+});
+
+test("slimMarkdown unwraps links, keeps text", () => {
+  const md = "See [the docs](https://e.com/docs) for more.\n";
+  assert.equal(slimMarkdown(md, { stripLinks: true }), "See the docs for more.\n");
+});
+
+test("slimMarkdown never touches fenced code", () => {
+  const md = 'Text [link](a) here.\n\n```js\nconst s = "[x](y)"; // ![](z)\n```\n';
+  const out = slimMarkdown(md, { stripLinks: true, stripImages: true });
+  assert.ok(out.includes('const s = "[x](y)"; // ![](z)'), "fence preserved verbatim");
+  assert.ok(!out.includes("[link](a)"), "link outside fence unwrapped");
+});
+
+test("slimMarkdown no-op when no options set", () => {
+  const md = "Keep [everything](https://e.com) as-is ![x](y).\n";
+  assert.equal(slimMarkdown(md, {}), md);
+});
+
+test("sha256Hex is stable and 16 hex chars", async () => {
+  const a = await sha256Hex("hello world");
+  const b = await sha256Hex("hello world");
+  const c = await sha256Hex("hello worlds");
+  assert.equal(a, b);
+  assert.notEqual(a, c);
+  assert.match(a, /^[0-9a-f]{16}$/);
+});
