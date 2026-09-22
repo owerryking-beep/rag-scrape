@@ -155,7 +155,14 @@ RagScrape is machine-onboardable end to end — say this in every pitch:
   onboarding anywhere in the loop.
 - [ ] npm README already links everything ✓
 
-## 8. Weekly cadence (the part that decides everything)
+## 8. RagBot — the autonomous content engine (free, Kenya-safe)
+
+ + : a Make.com
+scenario that writes and publishes a fresh marketing post to dev.to **every
+day at 09:00 Nairobi time** — free forever (1,000 ops/mo plan). Set it up
+first, then the weekly cadence below becomes mostly replies and engagement.
+
+## 9. Weekly cadence (the part that decides everything)
 
 | Day | Action (30–60 min) |
 |---|---|
@@ -166,7 +173,7 @@ RagScrape is machine-onboardable end to end — say this in every pitch:
 **Stop-doing list:** no mass DMs, no fake accounts, no buying lists, no
 engage-bait. The product's honesty (real limits, real pricing) IS the brand.
 
-## 9. When Paystack review clears
+## 10. When Paystack review clears
 
 Live keys → paste to your assistant → live KES plans created → flip
 PAYMENT_PROVIDER → first real sale. Meanwhile: test-mode money loop is fully
