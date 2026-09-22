@@ -39,7 +39,7 @@ then), don't fight it — build the 3 bubbles by hand, it's 10 minutes:
 | Bubble | Module to add | Key settings |
 |---|---|---|
 | 1 | **Tools → Set variable(s)** | Name `prompt`, value = copy the long text from the blueprint file (`"prompt": "..."`) |
-| 2 | **HTTP → Make a request** | URL `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=YOUR_GEMINI_API_KEY`, POST, body `{"contents":[{"parts":[{"text":"{{1.prompt}}"}]}]}` |
+| 2 | **HTTP → Make a request** | URL `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=YOUR_GEMINI_API_KEY`, POST, body `{"contents":[{"parts":[{"text":"{{1.prompt}}"}]}]}` |
 | 3 | **HTTP → Make a request** | URL `https://dev.to/api/articles`, POST, headers `api-key: YOUR_DEVTO_API_KEY` + `Content-Type: application/json`, body `{"article":{"body_markdown":{{2.candidates[].content.parts[].text}}}}` (map the Gemini text field by clicking it) |
 
 ### Step 3 — Paste your two keys
