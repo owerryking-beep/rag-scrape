@@ -21,6 +21,8 @@ import { crawlRouter } from "./routes/crawl.js";
 import { agentRouter } from "./routes/agents.js";
 import { redeemRouter } from "./routes/redeem.js";
 import { waitlistRouter } from "./routes/waitlist.js";
+import { adminRouter } from "./routes/admin.js";
+import { adminPageRouter } from "./routes/admin-page.js";
 import { LANDING_HTML } from "./generated/landing-html.js";
 import { CONVERT_HTML } from "./generated/convert-html.js";
 import { LLMS_GENERATOR_HTML } from "./generated/llms-generator-html.js";
@@ -109,6 +111,8 @@ app.route("/", agentRouter);
 app.route("/", vsRouter);
 app.route("/", redeemRouter);
 app.route("/", waitlistRouter);
+app.route("/admin", adminRouter);  // routes: /admin/upgrade, /admin/founding (scoped auth middleware)
+app.route("/", adminPageRouter);
 app.route("/", checkoutRouter);
 app.route("/", webhookRouter);
 

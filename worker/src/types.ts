@@ -21,6 +21,8 @@ export interface Env {
   GUMROAD_PRODUCT_STARTER: string;
   GUMROAD_PRODUCT_PRO: string;
   GUMROAD_PRODUCT_UNLIMITED: string;
+  /** Owner-only key for the manual founding rail (GET/POST /admin/*, /founding-admin). */
+  ADMIN_KEY: string;
   /** Workers AI binding (optional at type level; deploy adds it). */
   AI?: { run: (model: string, input: Record<string, unknown>) => Promise<unknown> };
   LS_TEST_MODE: string;
