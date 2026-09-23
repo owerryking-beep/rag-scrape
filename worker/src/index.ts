@@ -213,7 +213,10 @@ export default {
   fetch: app.fetch,
   scheduled: async (_event: unknown, env: Env, ctx: { waitUntil: (p: Promise<unknown>) => void }) => {
     ctx.waitUntil(
-      import("./services/gumroad.js").then((m) => m.reverifyAllLicenses(env)),
+      Promise.all([
+        import("./services/gumroad.js").then((m) => m.reverifyAllLicenses(env)),
+        import("./services/polar.js").then((m) => m.reverifyAllPolarLicenses(env)),
+      ]),
     );
   },
 };

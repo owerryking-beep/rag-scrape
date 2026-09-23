@@ -1,11 +1,12 @@
 import { Hono } from "hono";
 import type { HonoEnv, ErrorResponse } from "../types.js";
 import { redeemLicense } from "../services/gumroad.js";
+import { redeemPolarLicense } from "../services/polar.js";
 
 export const redeemRouter = new Hono<HonoEnv>();
 
 /**
- * POST /redeem — activate a Gumroad license against an API key.
+ * POST /redeem — activate a Gumroad or Polar license against an API key.
  * Body: { licenseKey: string, apiKey?: string, email?: string }
  * No bearer auth: the license key itself is the credential.
  */
@@ -35,10 +36,21 @@ redeemRouter.post("/redeem", async (c) => {
   }
 
   try {
-    const result = await redeemLicense(c.env, licenseKey, {
+    let result = await redeemLicense(c.env, licenseKey, {
       apiKey: body.apiKey,
       email: body.email,
     });
+    if (!result.ok) {
+      // Gumroad missed (or unconfigured) — try the Polar rail. A definitive
+      // REVOKED verdict from either provider wins over the other's miss.
+      const polar = await redeemPolarLicense(c.env, licenseKey, {
+        apiKey: body.apiKey,
+        email: body.email,
+      });
+      if (polar.ok) result = polar;
+      else if (polar.code === "LICENSE_REVOKED") result = polar;
+      else if (result.code === "NOT_CONFIGURED") result = polar;
+    }
     if (!result.ok) {
       const status = result.code === "NOT_CONFIGURED" ? 503 : result.code === "LICENSE_REVOKED" ? 403 : 400;
       return c.json<ErrorResponse>(

@@ -23,6 +23,12 @@ export interface Env {
   GUMROAD_PRODUCT_UNLIMITED: string;
   /** Owner-only key for the manual founding rail (GET/POST /admin/*, /founding-admin). */
   ADMIN_KEY: string;
+  /** Polar rail: org id + one license-key benefit id per product/tier. */
+  POLAR_ORG_ID: string;
+  POLAR_BENEFIT_STARTER: string;
+  POLAR_BENEFIT_PRO: string;
+  POLAR_BENEFIT_UNLIMITED: string;
+  POLAR_BENEFIT_FOUNDING: string;
   /** Workers AI binding (optional at type level; deploy adds it). */
   AI?: { run: (model: string, input: Record<string, unknown>) => Promise<unknown> };
   LS_TEST_MODE: string;
