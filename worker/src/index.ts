@@ -19,6 +19,8 @@ import { checkoutRouter } from "./routes/checkout.js";
 import { webhookRouter } from "./routes/webhook.js";
 import { crawlRouter } from "./routes/crawl.js";
 import { agentRouter } from "./routes/agents.js";
+import { redeemRouter } from "./routes/redeem.js";
+import { waitlistRouter } from "./routes/waitlist.js";
 import { LANDING_HTML } from "./generated/landing-html.js";
 import { CONVERT_HTML } from "./generated/convert-html.js";
 
@@ -77,6 +79,8 @@ app.get("/api", (c) =>
       webhook: "POST /webhook (Paystack or Lemon Squeezy)",
       convert_tool: "GET /convert (free, no signup)",
       for_agents: "GET /openapi.json · GET /llms.txt · GET /llms-full.txt · GET /robots.txt",
+      redeem: "POST /redeem { licenseKey, apiKey? } — Gumroad license activation",
+      waitlist: "POST /waitlist { email } · GET /waitlist — founding members (first 25: Pro at Starter price for a year)",
       health: "GET /health",
     },
     plans: { free: "50 reqs/mo", starter: "2,000 reqs/mo ($9)", pro: "10,000 reqs/mo ($19)", unlimited: "1,000,000 reqs/mo ($49)" },
@@ -92,6 +96,8 @@ app.get("/health", (c) =>
 app.route("/", scrapeRouter);
 app.route("/", crawlRouter);
 app.route("/", agentRouter);
+app.route("/", redeemRouter);
+app.route("/", waitlistRouter);
 app.route("/", checkoutRouter);
 app.route("/", webhookRouter);
 

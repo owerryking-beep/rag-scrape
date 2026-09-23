@@ -60,7 +60,8 @@ checkoutRouter.post("/create-checkout", async (c) => {
     body.plan !== undefined &&
     body.plan !== "starter" &&
     body.plan !== "pro" &&
-    body.plan !== "unlimited"
+    body.plan !== "unlimited" &&
+    body.plan !== "founding"
   ) {
     return c.json<ErrorResponse>(
       {

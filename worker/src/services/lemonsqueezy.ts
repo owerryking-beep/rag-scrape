@@ -122,7 +122,7 @@ export async function createCheckoutSession(
       : plan === "unlimited"
         ? env.LS_VARIANT_ID_UNLIMITED
         : env.LS_VARIANT_ID_PRO;
-  const planLabel = plan === "starter" ? "Starter" : plan === "unlimited" ? "Unlimited" : "Pro";
+  const planLabel = plan === "starter" ? "Starter" : plan === "unlimited" ? "Unlimited" : "Pro"; // "founding" bills Pro via the founding variant on Paystack
   const planLimit = TIER_LIMITS[tierForPlan(plan)];
 
   const payload = {

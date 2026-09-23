@@ -9,7 +9,7 @@
     "tail": "wrangler tail",
     "typecheck": "tsc --noEmit",
     "build": "tsc",
-    "test": "node --import tsx --test tests/converter.test.ts tests/extractor.test.ts tests/lemonsqueezy.test.ts tests/chunker.test.ts tests/crawler.test.ts tests/paystack.test.ts"
+    "test": "node --import tsx --test tests/converter.test.ts tests/extractor.test.ts tests/lemonsqueezy.test.ts tests/chunker.test.ts tests/crawler.test.ts tests/paystack.test.ts tests/gumroad.test.ts"
   },
   "dependencies": {
     "@mozilla/readability": "^0.5.0",

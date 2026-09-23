@@ -15,6 +15,12 @@ export interface Env {
   PS_PLAN_STARTER: string;
   PS_PLAN_PRO: string;
   PS_PLAN_UNLIMITED: string;
+  /** Founding-member Pro-at-Starter-price plan (first 25 only). */
+  PS_PLAN_FOUNDING: string;
+  // ── Gumroad license rail (product IDs; "SET_VIA_GUMROAD" = not configured)
+  GUMROAD_PRODUCT_STARTER: string;
+  GUMROAD_PRODUCT_PRO: string;
+  GUMROAD_PRODUCT_UNLIMITED: string;
   /** Workers AI binding (optional at type level; deploy adds it). */
   AI?: { run: (model: string, input: Record<string, unknown>) => Promise<unknown> };
   LS_TEST_MODE: string;
@@ -27,7 +33,7 @@ export interface Env {
 
 export type Tier = "free" | "starter" | "pro" | "unlimited";
 /** Paid plans (Lemon Squeezy variants). */
-export type Plan = "starter" | "pro" | "unlimited";
+export type Plan = "starter" | "pro" | "unlimited" | "founding";
 
 export interface ApiKeyData {
   key: string;

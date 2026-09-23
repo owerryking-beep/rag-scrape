@@ -23,6 +23,7 @@ export const PS_PRICES_KES: Record<Plan, number> = {
   starter: 1_200,
   pro: 2_500,
   unlimited: 6_500,
+  founding: 1_200, // Pro tier at Starter price — founding-member campaign
 };
 
 function planCodeFor(env: Env, plan: Plan): string {
@@ -31,7 +32,9 @@ function planCodeFor(env: Env, plan: Plan): string {
       ? env.PS_PLAN_STARTER
       : plan === "unlimited"
         ? env.PS_PLAN_UNLIMITED
-        : env.PS_PLAN_PRO;
+        : plan === "founding"
+          ? env.PS_PLAN_FOUNDING
+          : env.PS_PLAN_PRO;
   if (!code || code.startsWith("SET_VIA")) {
     throw new Error(`Paystack plan code for "${plan}" is not configured yet.`);
   }

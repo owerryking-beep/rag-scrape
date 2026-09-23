@@ -31,6 +31,13 @@ PAYMENT_PROVIDER = "paystack"
 PS_PLAN_STARTER = "PLN_c59t4737wkp9vym"     # KES 1,200/mo
 PS_PLAN_PRO = "PLN_j271nif737eiglu"         # KES 2,500/mo
 PS_PLAN_UNLIMITED = "PLN_wmbez34u3xsflgh"   # KES 6,500/mo
+PS_PLAN_FOUNDING = "PLN_5irjovz3jv6ab5i"    # Pro tier at KES 1,200/mo — first 25 only
+
+# ── Gumroad license rail (sell-now option while Paystack live is pending) ────
+# Create products/memberships with license keys enabled, paste product IDs.
+GUMROAD_PRODUCT_STARTER = "SET_VIA_GUMROAD"
+GUMROAD_PRODUCT_PRO = "SET_VIA_GUMROAD"
+GUMROAD_PRODUCT_UNLIMITED = "SET_VIA_GUMROAD"
 
 # ── Lemon Squeezy (dormant alternative provider) ─────────────────────────────
 # Secrets: LS_API_KEY, LS_WEBHOOK_SECRET (wrangler secret put …).
