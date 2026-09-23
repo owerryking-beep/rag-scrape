@@ -1,0 +1,48 @@
+DODO PAYMENTS ONBOARDING — COPY-PASTE ANSWERS (filled 2026-09-23)
+=================================================================
+
+Website/s where customers purchase or access your product:
+https://rag-scrape-api.owerryking.workers.dev
+
+Briefly describe what your product does:
+RagScrape is a developer API (SaaS) that turns any web page into clean, structured
+Markdown for AI and RAG pipelines — with heading-aligned chunking, embeddings,
+llms.txt generation and change-aware re-indexing. Customers subscribe monthly
+(from $9/mo), receive a license key by email, and their API key activates
+instantly on our site — fully self-serve. Free tier and free tools are available
+so developers can evaluate before paying.
+
+Category: SaaS / AI software
+
+How do customers receive the product (select all):
+[x] Instant access (login, download etc)
+[x] Email delivery (attachment, license keys etc)
+[x] Ongoing subscription access
+[ ] Manual fulfilment  <- do NOT select
+
+Human involvement level: No human involvement
+
+Restricted categories: None of the above
+
+Integration method: Payment links
+
+Customer acquisition (select all):
+[x] Website & SEO
+[x] Social Media
+[x] Email Marketing
+[ ] Ads  <- do NOT select (no ad budget)
+
+Social media links:
+https://github.com/owerryking-beep/rag-scrape
+https://dev.to/owen_king_e3d7d83a33c46c8
+
+Product stage: Live with customers
+
+Current payment platform:
+Gumroad (international card sales); Paystack account submitted and awaiting
+approval for Kenya.
+
+NEXT STEP AFTER APPROVAL:
+Create founding product (recurring $9/mo) + license keys benefit, then paste
+me: (1) product/price ID, (2) license key public info Dodo gives for
+verification, (3) API key if needed — I wire /redeem for Dodo same-day.

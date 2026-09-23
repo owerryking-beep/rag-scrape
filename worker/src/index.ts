@@ -24,6 +24,7 @@ import { redeemRouter } from "./routes/redeem.js";
 import { waitlistRouter } from "./routes/waitlist.js";
 import { adminRouter } from "./routes/admin.js";
 import { adminPageRouter } from "./routes/admin-page.js";
+import { redeemPageRouter } from "./routes/redeem-page.js";
 import { LANDING_HTML } from "./generated/landing-html.js";
 import { CONVERT_HTML } from "./generated/convert-html.js";
 import { LLMS_GENERATOR_HTML } from "./generated/llms-generator-html.js";
@@ -111,6 +112,7 @@ app.route("/", crawlRouter);
 app.route("/", agentRouter);
 app.route("/", vsRouter);
 app.route("/", redeemRouter);
+app.route("/", redeemPageRouter);  // GET /redeem — customer-facing redemption desk
 app.route("/", waitlistRouter);
 app.route("/admin", adminRouter);  // routes: /admin/upgrade, /admin/founding (scoped auth middleware)
 app.route("/", adminPageRouter);
