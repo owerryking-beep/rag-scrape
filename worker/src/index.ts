@@ -4,6 +4,7 @@ import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 import type {
   HonoEnv,
+  Env,
   ApiKeyData,
   ErrorResponse,
   RegisterRequest,
@@ -206,4 +207,13 @@ app.onError((err, c) => {
   );
 });
 
-export default app;
+// Cron (see [triggers] in wrangler.toml): weekly Gumroad license re-check —
+// refunded/revoked/cancelled subscriptions downgrade to the free tier.
+export default {
+  fetch: app.fetch,
+  scheduled: async (_event: unknown, env: Env, ctx: { waitUntil: (p: Promise<unknown>) => void }) => {
+    ctx.waitUntil(
+      import("./services/gumroad.js").then((m) => m.reverifyAllLicenses(env)),
+    );
+  },
+};

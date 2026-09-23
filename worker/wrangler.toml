@@ -64,3 +64,8 @@ id = "2f83988970b945328c6a6d8cac711e9e"
 # Workers AI — powers embed:true (bge-small-en-v1.5, 384-dim) on paid plans.
 [ai]
 binding = "AI"
+
+# Weekly Gumroad license re-verification (Mondays 07:00 UTC = 10:00 Nairobi):
+# downgrades keys whose subscription was refunded/revoked/cancelled.
+[triggers]
+crons = ["0 7 * * 1"]

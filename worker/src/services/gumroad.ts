@@ -16,7 +16,7 @@
  */
 
 import type { Env, ApiKeyData, Tier } from "../types.js";
-import { TIER_LIMITS, DAY_SECONDS } from "../types.js";
+import { FREE_TIER_LIMIT, TIER_LIMITS, DAY_SECONDS } from "../types.js";
 
 const GUMROAD_VERIFY = "https://api.gumroad.com/v2/licenses/verify";
 
@@ -28,6 +28,9 @@ interface GumroadVerifyResponse {
     product_name?: string;
     revoked?: boolean;
     refund_and_dispute_presale?: boolean;
+    subscription_ended_at?: string | null;
+    subscription_cancelled_at?: string | null;
+    subscription_failed_at?: string | null;
   };
 }
 
@@ -52,6 +55,57 @@ async function verifyWithGumroad(
     body: new URLSearchParams({ product_id: productId, license_key: licenseKey }).toString(),
   });
   return (await res.json().catch(() => null)) as GumroadVerifyResponse | null;
+}
+
+/**
+ * Weekly re-verification (cron): every registered Gumroad license is
+ * re-checked. Refunded / revoked / cancelled subscriptions are downgraded
+ * to the free tier — this is what makes Gumroad a complete replacement
+ * rail rather than a one-way door.
+ */
+export async function reverifyAllLicenses(
+  env: Env,
+): Promise<{ checked: number; downgraded: number }> {
+  const list = await env.API_KEYS.list({ prefix: "glic:" });
+  let checked = 0;
+  let downgraded = 0;
+
+  for (const entry of list.keys) {
+    const apiKey = await env.API_KEYS.get(entry.name);
+    if (!apiKey) continue;
+    const licenseKey = entry.name.slice("glic:".length);
+    checked++;
+
+    let dead = false;
+    let stillValid = false;
+    for (const { productId } of productTiers(env)) {
+      const data = await verifyWithGumroad(productId, licenseKey);
+      if (data?.success) {
+        stillValid = true;
+        const p = data.purchase ?? {};
+        if (p.revoked || p.refund_and_dispute_presale) dead = true;
+        if (p.subscription_ended_at || p.subscription_cancelled_at || p.subscription_failed_at) dead = true;
+        break;
+      }
+    }
+
+    if (!stillValid || dead) {
+      const raw = await env.API_KEYS.get(apiKey);
+      if (raw) {
+        const keyData = JSON.parse(raw) as ApiKeyData;
+        if (keyData.tier !== "free") {
+          keyData.tier = "free";
+          keyData.limit = FREE_TIER_LIMIT;
+          await env.API_KEYS.put(keyData.key, JSON.stringify(keyData), {
+            expirationTtl: DAY_SECONDS * 365,
+          });
+          downgraded++;
+        }
+      }
+    }
+  }
+
+  return { checked, downgraded };
 }
 
 export type RedeemResult =
@@ -117,10 +171,14 @@ export async function redeemLicense(
   keyData.limit = TIER_LIMITS[tier];
   keyData.active = true;
   if (!keyData.email || keyData.email === "unknown") keyData.email = email;
-  keyData.subscriptionId = `gumroad:${licenseKey.slice(0, 12)}`;
+  keyData.subscriptionId = `gumroad:${licenseKey}`;
 
   await env.API_KEYS.put(keyData.key, JSON.stringify(keyData), {
     expirationTtl: DAY_SECONDS * 365,
+  });
+  // Registry for the weekly re-verification cron (license → api key).
+  await env.API_KEYS.put(`glic:${licenseKey}`, keyData.key, {
+    expirationTtl: DAY_SECONDS * 3650,
   });
 
   return {

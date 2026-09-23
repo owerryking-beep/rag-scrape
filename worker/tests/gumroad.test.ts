@@ -128,3 +128,58 @@ test("waitlist: rejects invalid emails", async () => {
   const r = await addWaitlistEntry(env, "not-an-email");
   assert.equal(r.ok, false);
 });
+
+
+test("reverifyAllLicenses downgrades cancelled subscriptions", async () => {
+  const { reverifyAllLicenses } = await import("../src/services/gumroad.js");
+  const env = mockEnv({ pro: "PID_PRO" });
+  // Seed a previously-redeemed Pro key + its license registry entry.
+  const seed: ApiKeyData = {
+    key: "rsk_gone", email: "c@e.com", tier: "pro", limit: 10_000,
+    subscriptionId: "gumroad:LIC-CANCELLED", createdAt: new Date().toISOString(), active: true,
+  };
+  await env.API_KEYS.put(seed.key, JSON.stringify(seed));
+  await env.API_KEYS.put("glic:LIC-CANCELLED", seed.key);
+
+  const orig = globalThis.fetch;
+  globalThis.fetch = (async () => ({
+    json: async () => ({
+      success: true,
+      purchase: { email: "c@e.com", subscription_cancelled_at: "2026-09-20T00:00:00Z" },
+    }),
+  })) as unknown as typeof fetch;
+  try {
+    const res = await reverifyAllLicenses(env);
+    assert.equal(res.checked, 1);
+    assert.equal(res.downgraded, 1);
+    const after = JSON.parse((await env.API_KEYS.get("rsk_gone")) ?? "{}") as ApiKeyData;
+    assert.equal(after.tier, "free");
+    assert.equal(after.limit, 50);
+  } finally {
+    globalThis.fetch = orig;
+  }
+});
+
+test("reverifyAllLicenses leaves active subscriptions alone", async () => {
+  const { reverifyAllLicenses } = await import("../src/services/gumroad.js");
+  const env = mockEnv({ pro: "PID_PRO" });
+  const seed: ApiKeyData = {
+    key: "rsk_keep", email: "k@e.com", tier: "pro", limit: 10_000,
+    createdAt: new Date().toISOString(), active: true,
+  };
+  await env.API_KEYS.put(seed.key, JSON.stringify(seed));
+  await env.API_KEYS.put("glic:LIC-OK", seed.key);
+
+  const orig = globalThis.fetch;
+  globalThis.fetch = (async () => ({
+    json: async () => ({ success: true, purchase: { email: "k@e.com" } }),
+  })) as unknown as typeof fetch;
+  try {
+    const res = await reverifyAllLicenses(env);
+    assert.equal(res.downgraded, 0);
+    const after = JSON.parse((await env.API_KEYS.get("rsk_keep")) ?? "{}") as ApiKeyData;
+    assert.equal(after.tier, "pro");
+  } finally {
+    globalThis.fetch = orig;
+  }
+});
