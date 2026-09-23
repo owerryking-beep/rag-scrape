@@ -22,3 +22,12 @@ writeFileSync(
     `export const CONVERT_HTML = ${JSON.stringify(convert)};\n`,
 );
 console.log(`Embedded convert tool (${convert.length} bytes) into src/generated/convert-html.ts`);
+
+const generator = readFileSync(new URL("../../tools/llms-generator.html", import.meta.url), "utf8");
+writeFileSync(
+  new URL("llms-generator-html.ts", outDir),
+  "// AUTO-GENERATED from tools/llms-generator.html — do not edit by hand.\n" +
+    "// Regenerate with: node scripts/embed-landing.mjs\n" +
+    `export const LLMS_GENERATOR_HTML = ${JSON.stringify(generator)};\n`,
+);
+console.log(`Embedded llms-txt generator (${generator.length} bytes) into src/generated/llms-generator-html.ts`);

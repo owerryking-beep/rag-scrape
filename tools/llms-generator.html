@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free llms.txt generator — RagScrape</title>
+<meta name="description" content="Generate a valid llms.txt for any website in seconds — free, no signup. Crawl a docs site and get an AI-ready index file to serve at yoursite.com/llms.txt.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+<style>
+  :root{color-scheme:dark}*{box-sizing:border-box;margin:0}
+  body{font-family:ui-sans-serif,system-ui,sans-serif;background:#0b1220;color:#e5e7eb;min-height:100vh}
+  .wrap{max-width:860px;margin:0 auto;padding:40px 20px 80px}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:44px}
+  .logo{font-weight:700;font-size:18px}.logo span{color:#818cf8}
+  a.top{color:#9ca3af;font-size:14px;text-decoration:none}a.top:hover{color:#fff}
+  h1{font-size:clamp(24px,5vw,38px);letter-spacing:-.03em;margin-bottom:10px}h1 em{font-style:normal;color:#818cf8}
+  p.sub{color:#9ca3af;margin-bottom:24px;line-height:1.5;max-width:640px}
+  form{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+  input{padding:14px 16px;border-radius:10px;border:1px solid #374151;background:#111827;color:#fff;font-size:15px;outline:none}
+  input:focus{border-color:#6366f1}
+  button{padding:14px 22px;border-radius:10px;border:0;background:#6366f1;color:#fff;font-weight:600;font-size:15px;cursor:pointer}
+  button:hover{background:#818cf8}button:disabled{opacity:.6;cursor:wait}
+  .note{font-size:13px;color:#6b7280;margin-bottom:24px}
+  .err{display:none;background:#450a0a;border:1px solid #7f1d1d;color:#fca5a5;padding:12px 16px;border-radius:10px;margin-bottom:20px;font-size:14px}
+  textarea{display:none;width:100%;min-height:300px;background:#111827;border:1px solid #1f2937;border-radius:12px;padding:18px;color:#e5e7eb;font:13px/1.6 ui-monospace,Menlo,monospace;white-space:pre;margin-bottom:12px}
+  .actions{display:none;gap:10px;margin-bottom:28px;flex-wrap:wrap}
+  .actions button{background:#1f2937;font-size:13px;padding:10px 16px}
+  ol.how{color:#9ca3af;font-size:14px;line-height:1.8;margin:0 0 28px;padding-left:20px;display:none}
+  ol.how code{background:#111827;padding:2px 6px;border-radius:6px;color:#a5b4fc}
+  footer{margin-top:56px;color:#4b5563;font-size:13px;line-height:1.6}footer a{color:#818cf8;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">rag<span>scrape</span></div>
+    <a class="top" href="/">API &amp; pricing →</a>
+  </header>
+  <h1>Generate a valid <em>llms.txt</em> for any site</h1>
+  <p class="sub">AI assistants increasingly look for <b>llms.txt</b> at a site's root. This tool crawls a site (same host, up to 20 pages), then builds the index file for you. Free — a no-card API key is created for you automatically.</p>
+  <form id="f">
+    <input id="url" type="text" placeholder="https://docs.yoursite.com" required>
+    <input id="email" type="email" placeholder="you@example.com (to mint your free key — 50 crawls/mo)" required>
+    <button id="go" type="submit">Generate llms.txt</button>
+  </form>
+  <p class="note">Uses the same engine as the RagScrape API. Docs sites work best.</p>
+  <div id="err" class="err"></div>
+  <textarea id="out" readonly spellcheck="false"></textarea>
+  <div class="actions" id="acts">
+    <button id="copy" type="button">Copy</button>
+    <button id="dl" type="button">Download llms.txt</button>
+  </div>
+  <ol class="how" id="how">
+    <li>Save the file as <code>llms.txt</code></li>
+    <li>Upload it to your site root so it's served at <code>https://yoursite.com/llms.txt</code></li>
+    <li>AI tools and agents can now index your site properly. Regenerate when your docs change — or automate it with the <a href="/">RagScrape API</a>.</li>
+  </ol>
+  <footer>RagScrape turns any site into AI-ready context — llms.txt, RAG chunks, embeddings. <a href="/">Get the API →</a></footer>
+</div>
+<script>
+function getKey(){return localStorage.getItem('rs_key')}
+var last='';
+document.getElementById('f').addEventListener('submit',async function(e){
+  e.preventDefault();
+  var b=document.getElementById('go'),err=document.getElementById('err');
+  b.disabled=true;b.textContent='Crawling…';err.style.display='none';
+  try{
+    var key=getKey();
+    if(!key){
+      var r1=await fetch('/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:document.getElementById('email').value.trim()})});
+      var d1=await r1.json();
+      if(d1.success){localStorage.setItem('rs_key',d1.apiKey);key=d1.apiKey}
+      else{throw new Error(d1.error&&d1.error.message||'Could not create a free key')}
+    }
+    var r2=await fetch('/llms-txt',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({url:document.getElementById('url').value.trim(),maxPages:20})});
+    var d2=await r2.json();
+    if(d2.success){
+      last=d2.llmsTxt;
+      var out=document.getElementById('out');
+      out.value=last;out.style.display='block';
+      document.getElementById('acts').style.display='flex';
+      document.getElementById('how').style.display='block';
+    }else{err.textContent=(d2.error&&d2.error.message)||'Generation failed.';err.style.display='block'}
+  }catch(ex){err.textContent=ex.message||'Network error.';err.style.display='block'}
+  b.disabled=false;b.textContent='Generate llms.txt';
+});
+document.getElementById('copy').onclick=function(){navigator.clipboard.writeText(last).then(function(){var b=document.getElementById('copy');b.textContent='Copied ✓';setTimeout(function(){b.textContent='Copy'},1200)})};
+document.getElementById('dl').onclick=function(){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([last],{type:'text/plain'}));a.download='llms.txt';a.click();URL.revokeObjectURL(a.href)};
+</script>
+</body>
+</html>

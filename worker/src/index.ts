@@ -23,13 +23,17 @@ import { redeemRouter } from "./routes/redeem.js";
 import { waitlistRouter } from "./routes/waitlist.js";
 import { LANDING_HTML } from "./generated/landing-html.js";
 import { CONVERT_HTML } from "./generated/convert-html.js";
+import { LLMS_GENERATOR_HTML } from "./generated/llms-generator-html.js";
+import { vsRouter } from "./routes/vs.js";
 
 const app = new Hono<HonoEnv>();
 
 // ── Global middleware ────────────────────────────────────────────────────────
 
 app.use("*", logger());
-app.use("*", secureHeaders());
+// xFrameOptions off on purpose: /convert is an embeddable widget (see
+// tools/convert.html footer — bloggers drop it into their posts as an iframe).
+app.use("*", secureHeaders({ xFrameOptions: false }));
 app.use(
   "*",
   cors({
@@ -64,6 +68,12 @@ app.get("/convert", (c) => {
   return c.html(CONVERT_HTML);
 });
 
+// Free tool #2 (SEO): generate an llms.txt for any site.
+app.get("/llms-txt-generator", (c) => {
+  c.header("Cache-Control", "public, max-age=600");
+  return c.html(LLMS_GENERATOR_HTML);
+});
+
 app.get("/api", (c) =>
   c.json({
     service: "rag-scrape-api",
@@ -96,6 +106,7 @@ app.get("/health", (c) =>
 app.route("/", scrapeRouter);
 app.route("/", crawlRouter);
 app.route("/", agentRouter);
+app.route("/", vsRouter);
 app.route("/", redeemRouter);
 app.route("/", waitlistRouter);
 app.route("/", checkoutRouter);

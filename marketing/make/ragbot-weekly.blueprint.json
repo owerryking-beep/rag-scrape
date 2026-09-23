@@ -1,0 +1,110 @@
+{
+  "name": "RagBot weekly \u2014 deep-dive DRAFT (Sundays)",
+  "flow": [
+    {
+      "id": 1,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": {
+        "handleErrors": true,
+        "useNewZLibDeCompress": true
+      },
+      "mapper": {
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=YOUR_GEMINI_API_KEY",
+        "serializeUrl": false,
+        "method": "post",
+        "headers": [
+          {
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "contentType": "application/json",
+        "data": "{\"contents\":[{\"parts\":[{\"text\":\"You are the marketing voice of RagScrape (https://rag-scrape-api.owerryking.workers.dev), an API that turns any URL into RAG-ready Markdown in one call: heading-aligned chunks, optional 384-dim embeddings (embed true), token slimming (stripLinks, stripImages), change-aware re-indexing (send contentHash back as ifNoneHash and unchanged pages return unchanged true with no content), a docs-site crawler that generates llms.txt (POST /llms-txt), a free no-signup converter at /convert, and an MCP server (npx rag-scrape mcp). Free tier: 50 requests/month, paid from $9/mo. Choose ONE theme, varying from previous days: (1) heading-aligned chunking beats fixed-size splitting, (2) llms.txt explained and how to generate one for any site, (3) change-aware re-indexing stops re-embedding unchanged pages, (4) one-call embeddings on Cloudflare Workers AI, (5) token slimming for smaller prompts, (6) the MCP server for Claude and agents, (7) a concrete RAG pipeline recipe using the API, (8) the free converter tool. Write a 900-1300 word deep-dive tutorial: strong hook, clear sections with ## headings, at least two concrete examples, an honest limitations section, ending with exactly this call to action: Try it free (no signup): https://rag-scrape-api.owerryking.workers.dev/convert - free API key: 50 requests/month. Full docs: https://rag-scrape-api.owerryking.workers.dev/llms-full.txt - Return ONLY a single line of raw JSON with no markdown fences and no commentary, exactly this shape: {\\\"article\\\": {\\\"body_markdown\\\": \\\"---\\\\ntitle: <catchy title max 90 chars>\\\\npublished: false\\\\ntags: [three or four of: ai, rag, llm, webdev, api, markdown, datascience]\\\\ndescription: <one sentence max 140 chars>\\\\n---\\\\n\\\\n<the full post markdown with every newline escaped as backslash-n>\\\"}}\"}]}],\"generationConfig\":{\"temperature\":0.9,\"maxOutputTokens\":2048,\"response_mime_type\":\"application/json\"}}",
+        "timeout": "180",
+        "shareCookies": false,
+        "parseResponse": true,
+        "followRedirect": true,
+        "useQuerystring": false,
+        "rejectUnauthorized": true,
+        "followAllRedirects": false
+      },
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 0
+        },
+        "restore": {},
+        "notes": []
+      }
+    },
+    {
+      "id": 2,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": {
+        "handleErrors": true,
+        "useNewZLibDeCompress": true
+      },
+      "mapper": {
+        "url": "https://dev.to/api/articles",
+        "serializeUrl": false,
+        "method": "post",
+        "headers": [
+          {
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "name": "api-key",
+            "value": "YOUR_DEVTO_API_KEY"
+          },
+          {
+            "name": "User-Agent",
+            "value": "RagBot/1.0"
+          }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "contentType": "application/json",
+        "data": "{{1.candidates[].content.parts[].text}}",
+        "timeout": "180",
+        "shareCookies": false,
+        "parseResponse": true,
+        "followRedirect": true,
+        "useQuerystring": false,
+        "rejectUnauthorized": true,
+        "followAllRedirects": false
+      },
+      "metadata": {
+        "designer": {
+          "x": 300,
+          "y": 0
+        },
+        "restore": {},
+        "notes": []
+      }
+    }
+  ],
+  "metadata": {
+    "instant": false,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": {
+      "orphans": []
+    },
+    "notes": []
+  }
+}

@@ -1,5 +1,11 @@
 # RagScrape — URL → clean Markdown, at the edge
 
+[![npm](https://img.shields.io/npm/v/rag-scrape?color=cb3837&label=npx%20rag-scrape)](https://www.npmjs.com/package/rag-scrape)
+[![tests](https://img.shields.io/badge/tests-67%2F67-brightgreen)](https://github.com/owerryking-beep/rag-scrape)
+[![API](https://img.shields.io/badge/API-live-6366f1)](https://rag-scrape-api.owerryking.workers.dev)
+[![MCP](https://img.shields.io/badge/MCP-server-8b5cf6)](https://www.npmjs.com/package/rag-scrape#mcp-server-claude-desktop-agents)
+[![free tool](https://img.shields.io/badge/free_tool-convert%20any%20URL-0ea5e9)](https://rag-scrape-api.owerryking.workers.dev/convert)
+
 One API call turns any public URL into clean, LLM-ready Markdown. Built for
 RAG pipelines, knowledge bases, and AI agents.
 

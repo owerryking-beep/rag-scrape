@@ -79,6 +79,13 @@ you sleep — except free and actually available in Kenya.
 
 ## Adding a second shift (optional, 3 minutes)
 
+**Weekly deep-dive (NEW):** import `ragbot-weekly.blueprint.json` the same way
+as the daily one → paste the same two keys → clock icon → **Every week →
+Sunday → 11:00 → Africa/Nairobi** → ON. It writes a 900–1,300-word tutorial
+and saves it as a **DRAFT** (`published: false`) — you review on your phone
+and tap Publish. Same retry tip: right-click bubble 1 → Add error handler →
+Retry ×3 / 5 min.
+
 - **Weekly long article:** duplicate the scenario (⋯ → Clone), change the
   prompt's word target to 900–1,200 words + `published: false` (drafts for
   your review instead of auto-publish), schedule **Sunday 10:00**.

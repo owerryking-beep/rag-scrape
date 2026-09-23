@@ -32,6 +32,7 @@ const ROBOTS = [
   "# Machine-readable API reference",
   "# llms.txt:   " + BASE + "/llms.txt",
   "# OpenAPI:    " + BASE + "/openapi.json",
+  "Sitemap: " + BASE + "/sitemap.xml",
   "",
 ].join("\n");
 
@@ -366,4 +367,22 @@ agentRouter.get("/openapi.json", (c) => {
   return c.body(JSON.stringify(OPENAPI, null, 2), 200, {
     "Content-Type": "application/json; charset=utf-8",
   });
+});
+
+// ── sitemap.xml ──────────────────────────────────────────────────────────────
+
+const SITEMAP = [
+  '<?xml version="1.0" encoding="UTF-8"?>',
+  '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+  ...[
+    "/", "/convert", "/llms-txt-generator", "/vs/firecrawl", "/vs/jina-reader",
+  ].map((p) =>
+    `  <url><loc>${BASE}${p}</loc><changefreq>weekly</changefreq><priority>${p === "/" ? "1.0" : "0.8"}</priority></url>`,
+  ),
+  "</urlset>",
+].join("\n");
+
+agentRouter.get("/sitemap.xml", (c) => {
+  c.header("Cache-Control", "public, max-age=86400");
+  return c.body(SITEMAP, 200, { "Content-Type": "application/xml; charset=utf-8" });
 });

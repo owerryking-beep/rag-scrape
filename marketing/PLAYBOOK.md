@@ -17,6 +17,15 @@ No JS rendering (SPA pages come back thin) · no robots.txt checking ·
 same-host crawl only, ≤100 pages · KV counters aren't atomic under heavy
 concurrency · embedding model is bge-small (384-dim), not OpenAI.
 
+**Scope added (this build):** programmatic-SEO pages live at
+`/vs/firecrawl` + `/vs/jina-reader` + `/llms-txt-generator` (second free tool)
++ `/sitemap.xml` (all in robots.txt) · `/convert` is now an embeddable widget
+(X-Frame-Options off — the iframe snippet is in §3.7) · repo has npm/tests/MCP
+badges + 10 topics + description/homepage · `CONTENT-ARSENAL.md` holds
+fully-written Quora answers, newsletter/press emails, 2 more Reddit posts,
+LinkedIn series, DM template, PH assets · `marketing/make/ragbot-weekly.blueprint.json`
+= Sunday 1,000-word deep-dive DRAFTS for your review.
+
 ---
 
 ## 1. Channels by ROI
@@ -47,13 +56,15 @@ concurrency · embedding model is bge-small (384-dim), not OpenAI.
 | **Newsletters** | Cold-pitch TLDR Newsletter, console.dev, JavaScript Weekly, AI Weekly (template §3.5) |
 | **African tech press** | Techpoint Africa, TechCabal, Techweez: "Kenyan developer builds AI data infrastructure on Cloudflare's free tier" (template §3.6) — the Kenya angle is genuinely newsworthy there |
 
-### TIER C — compounding SEO (I build, you approve)
-- `/vs/firecrawl` and `/vs/jina-reader` comparison pages on the worker
-  (honest tables, our limits included — these RANK because nobody writes
-  honest comparisons)
-- `/llms-txt-generator` — a second free tool page (double the SEO surface)
-- Target keywords: "url to markdown api", "llms.txt generator", "rag chunking
-  api", "firecrawl alternative", "markdown chunking for rag"
+### TIER C — compounding SEO ✅ BUILT (live now)
+- ✅ `/vs/firecrawl` + `/vs/jina-reader` — honest comparisons, cached 24h, in sitemap
+- ✅ `/llms-txt-generator` — second free tool (its own keyword: "llms.txt generator")
+- ✅ `/sitemap.xml` + robots Sitemap line; all pages cache-cached for crawlers
+- ✅ `/convert` embeddable (X-Frame-Options off) — every blogger embed = backlink
+- ✅ Repo: badges, 10 topics, description/homepage set via API
+- Target keywords: "url to markdown api", "llms.txt generator", "rag chunking api",
+  "firecrawl alternative", "markdown chunking for rag" — pages now exist for each
+- Next (when traffic data justifies): add `?embed=1` usage examples page
 
 ---
 
@@ -141,6 +152,14 @@ UTM every link you control: `?utm_source=hn|reddit|linkedin|quora|newsletter`
 Funnel math reminder: 2–5% of active free users convert. 100 free keys ≈
 2–5 customers ≈ $18–85 MRR. Month 1 goal isn't money — it's **finding the
 one channel that produces free keys**, then doing 10× of that in month 2.
+
+## 3.7 The embed widget (viral loop — put this in every article footer)
+```html
+<iframe src="https://rag-scrape-api.owerryking.workers.dev/convert"
+        style="width:100%;height:720px;border:0;border-radius:12px"
+        loading="lazy" title="RagScrape — free URL to Markdown"></iframe>
+```
+Framing is explicitly allowed. Every embed is a permanent backlink + demo.
 
 ## 5. Budget
 $0 now. First $20 of revenue → domain (ragscrape.dev) — I wire it same day.
