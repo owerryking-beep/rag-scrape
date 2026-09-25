@@ -43,6 +43,7 @@ POLAR_BENEFIT_STARTER = "SET_VIA_POLAR"
 POLAR_BENEFIT_PRO = "SET_VIA_POLAR"
 POLAR_BENEFIT_UNLIMITED = "SET_VIA_POLAR"
 POLAR_BENEFIT_FOUNDING = "SET_VIA_POLAR"
+BASE_USDC_ADDRESS = "SET_VIA_WALLET"
 
 # ── Lemon Squeezy (dormant alternative provider) ─────────────────────────────
 # Secrets: LS_API_KEY, LS_WEBHOOK_SECRET (wrangler secret put …).
@@ -70,7 +71,7 @@ id = "2f83988970b945328c6a6d8cac711e9e"
 [ai]
 binding = "AI"
 
-# Weekly Gumroad license re-verification (Mondays 07:00 UTC = 10:00 Nairobi):
-# downgrades keys whose subscription was refunded/revoked/cancelled.
+# Daily 04:00 UTC (07:00 Nairobi): Gumroad + Polar license liveness,
+# USDC credit expiry (refunds/cancels/expiry all downgrade to free).
 [triggers]
-crons = ["0 7 * * 1"]
+crons = ["0 4 * * *"]

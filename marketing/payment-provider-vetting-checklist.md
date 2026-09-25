@@ -1,0 +1,42 @@
+# Payment Provider Vetting Checklist (run BEFORE trusting any new gateway)
+
+Score any candidate. 2+ failures = walk away, no exceptions.
+
+1. [ ] Named legal entity, physical address, and financial regulator on the site
+2. [ ] Domain older than 2 years (check whois / scam-detector.com)
+3. [ ] Names WHO actually processes the cards (acquiring bank / sponsor)
+4. [ ] Independent reviews exist (Reddit/Trustpilot with account age + variety —
+       beware 5-10 same-week anonymous perfect reviews)
+5. [ ] Eats its own cooking (a card processor must accept card payment for its own product)
+6. [ ] Verifiable license: CBK register (Kenya) or checkable foreign license
+7. [ ] No "impossible pitch": no-KYC + card acquiring + instant crypto settlement
+       cannot all be true — card networks require a licensed entity somewhere
+
+Known results (2026-09):
+- PASS: Paystack, IntaSend, Dodo Payments, Gumroad, PayPal, Polar (+Stripe caveat)
+- FAIL/BIN: nexapay.one (soft-scam: hidden owner, 10-mo domain, KYC-trap terms,
+  fake Trustpilot, name-imitates legit Singapore NexaPay), Cryptomus (freeze reports)
+
+CRYPTO DOOR BENCH (client pays crypto → we receive USDC; owner-only note)
+- CoinRemitter: 0.23%, NO KYC, non-custodial auto-withdraw ~30min — top pick
+- NOWPayments (crypto-only mode): email signup, 0.5-1%, 300+ coins — fiat mode = KYC
+- BTCPay Server: 0% self-hosted — when domain+VPS budget exists
+- x402/USDC: agent rail on Cloudflare — build when an agent asks / waitlist clears
+RULES: USDC only · one-time/manual-renewal only (never founding subs) ·
+door #6 (never default) · $20 test first · off-ramp to M-Pesa monthly (own timing)
+CARD-IN→CRYPTO-OUT "no KYC" = scam sector (nexapay family; Cryptomus = freeze reports).
+Card clients who want crypto: THEY convert on their side → send USDC to our address.
+
+GUMROAD PAYOUT ROUTES (Kenya) — decided 2026-09
+1. TRY FIRST: Direct deposit (Stripe Connect) — Kenya now listed in Gumroad's
+   bank-payout expansion. Best rate (~97-98% of balance). Needs Stripe ID pass.
+2. FALLBACK: PayPal → M-Pesa (Super App, 3% conv + ~2-4% receiving). Works regardless.
+3. SETTLEMENT LAYER (upgrade): Grey (grey.co) — licensed MSB (FINTRAC Canada +
+   FinCEN USA, verified 2026-09). NOT a checkout (no card acquiring, no
+   subscriptions, no customer payments — can NEVER replace Paystack's charging
+   role). Opens when: (a) crypto door goes live — Grey accepts USDC deposits →
+   instant USD → market-FX KES off-ramp (kills the Binance-P2P problem), or
+   (b) weekly balances >$50. KYC: ID + selfie, document-based, no Stripe.
+NEVER: Gumroad→crypto (no such payout; don't bridge rails).
+Notes: $10 min payout (first sale rolls a week — normal). Gumroad cut per $9
+founding seat ≈ $1.96 → $7.04 balance before payout-route fees.

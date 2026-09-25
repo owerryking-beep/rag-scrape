@@ -7,6 +7,7 @@ import type {
 } from "../types.js";
 import { createCheckoutSession as lsCreateCheckout } from "../services/lemonsqueezy.js";
 import { createCheckoutSession as psCreateCheckout } from "../services/paystack.js";
+import { usdcConfigured, USDC_PRICE } from "../services/usdc.js";
 
 export const checkoutRouter = new Hono<HonoEnv>();
 
@@ -73,12 +74,29 @@ checkoutRouter.post("/create-checkout", async (c) => {
   }
 
   try {
+    const plan = body.plan ?? "pro";
+    // Machine-readable payment options: autonomous agents pick crypto (no
+    // human needed); humans pick the hosted checkout. checkoutUrl stays for
+    // backwards compatibility with existing integrations.
+    const options: CheckoutResponse["options"] = [];
+    if (usdcConfigured(c.env)) {
+      options.push({
+        type: "crypto_usdc",
+        chain: "base",
+        token: "USDC",
+        address: c.env.BASE_USDC_ADDRESS.trim(),
+        amount_usdc: USDC_PRICE[plan as "founding" | "pro" | "unlimited"] ?? USDC_PRICE.pro,
+        days: 31,
+        claim: { method: "POST", path: "/crypto/claim", body: { txHash: "<transaction hash>", apiKey: body.apiKey ?? "<optional>" } },
+      });
+    }
     const provider = (c.env.PAYMENT_PROVIDER ?? "").trim().toLowerCase();
     const checkoutUrl =
       provider === "paystack"
-        ? await psCreateCheckout(c.env, body.email, body.apiKey, body.plan ?? "pro")
-        : await lsCreateCheckout(c.env, body.email, body.apiKey, body.plan ?? "pro");
-    return c.json<CheckoutResponse>({ success: true, checkoutUrl }, 200);
+        ? await psCreateCheckout(c.env, body.email, body.apiKey, plan)
+        : await lsCreateCheckout(c.env, body.email, body.apiKey, plan);
+    options.push({ type: "hosted_checkout", provider, url: checkoutUrl });
+    return c.json<CheckoutResponse>({ success: true, checkoutUrl, options }, 200);
   } catch (err) {
     console.error("checkout error:", err);
     return c.json<ErrorResponse>(

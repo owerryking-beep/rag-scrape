@@ -25,6 +25,8 @@ export interface Env {
   ADMIN_KEY: string;
   /** Polar rail: org id + one license-key benefit id per product/tier. */
   POLAR_ORG_ID: string;
+  /** USDC rail: owner wallet address on Base (agents pay crypto, no third party). */
+  BASE_USDC_ADDRESS: string;
   POLAR_BENEFIT_STARTER: string;
   POLAR_BENEFIT_PRO: string;
   POLAR_BENEFIT_UNLIMITED: string;
@@ -145,9 +147,15 @@ export interface CheckoutRequest {
   plan?: Plan;
 }
 
+interface CheckoutOption {
+  type: string;
+  [k: string]: unknown;
+}
+
 export interface CheckoutResponse {
   success: true;
   checkoutUrl: string;
+  options?: CheckoutOption[];
 }
 
 export interface WebhookAck {

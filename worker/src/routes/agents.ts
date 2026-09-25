@@ -7,6 +7,7 @@
  */
 import { Hono } from "hono";
 import type { HonoEnv } from "../types.js";
+import { usdcConfigured } from "../services/usdc.js";
 
 export const agentRouter = new Hono<HonoEnv>();
 
@@ -69,11 +70,21 @@ const LLMS_TXT = [
   "3. Every response carries contentHash — resend it as ifNoneHash to get" +
     " {\"unchanged\":true} (zero content tokens) when a page hasn't changed.",
   "",
+  "",
+  "## Payments",
+  "",
+  "Upgrade options: POST /create-checkout {email, apiKey?, plan?} (hosted checkout) · POST /redeem {licenseKey} · {{USDC_SECTION}}",
 ].join("\n");
+
+const usdcSection = (env: HonoEnv["Bindings"]): string =>
+  usdcConfigured(env)
+    ? `Autonomous payment (no human): send USDC on Base — 9 = Founding (Pro limits) / 19 = Pro / 49 = Unlimited, 31 days each. Get address: GET /pay?format=json. Then POST /crypto/claim {"txHash":"0x..."} → verified on-chain, upgraded key instantly.`
+    : `USDC rail not active yet — upgrade via POST /create-checkout (hosted checkout, human pays) or POST /redeem {licenseKey}.`;
 
 agentRouter.get("/llms.txt", (c) => {
   c.header("Cache-Control", "public, max-age=3600");
-  return c.body(LLMS_TXT, 200, { "Content-Type": "text/plain; charset=utf-8" });
+  const txt = LLMS_TXT.replace("{{USDC_SECTION}}", usdcSection(c.env));
+  return c.body(txt, 200, { "Content-Type": "text/plain; charset=utf-8" });
 });
 
 // ── llms-full.txt — complete API reference in Markdown ──────────────────────
@@ -124,7 +135,15 @@ const LLMS_FULL = [
   "",
   "## POST /create-checkout",
   "",
-  "Hosted subscription checkout (Starter $9 / Pro $19 / Unlimited $49). Body: {email, apiKey?, plan?}. Response: {success:true, checkoutUrl}. Payment upgrades the key automatically via webhook.",
+  "Payment options for upgrading (Starter $9 / Pro $19 / Unlimited $49 / Founding = Pro limits at $9). Body: {email, apiKey?, plan?}. Response: {success:true, checkoutUrl, options[]}. options include crypto_usdc (autonomous — no human) when active, and hosted_checkout (a human completes card payment).",
+  "",
+  "## Autonomous payment (USDC on Base) — for AI agents",
+  "",
+  "{{USDC_SECTION}}",
+  "",
+  "## POST /redeem",
+  "",
+  "Activate a license key (Gumroad or other rails): {licenseKey, apiKey?} → upgraded API key.",
   "",
   "## GET /",
   "",
@@ -146,7 +165,7 @@ const LLMS_FULL = [
 
 agentRouter.get("/llms-full.txt", (c) => {
   c.header("Cache-Control", "public, max-age=3600");
-  return c.body(LLMS_FULL, 200, { "Content-Type": "text/plain; charset=utf-8" });
+  return c.body(LLMS_FULL.replace("{{USDC_SECTION}}", usdcSection(c.env)), 200, { "Content-Type": "text/plain; charset=utf-8" });
 });
 
 // ── OpenAPI 3.1 ──────────────────────────────────────────────────────────────
@@ -354,6 +373,27 @@ const OPENAPI: Record<string, unknown> = {
           },
         },
         responses: { "200": { description: "Hosted checkout URL" }, "400": { description: "Invalid plan/email" } },
+      },
+    },
+    "/crypto/claim": {
+      post: {
+        summary: "Claim a USDC payment (autonomous agent rail, Base network)",
+        operationId: "cryptoClaim",
+        security: [],
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { type: "object", required: ["txHash"], properties: { txHash: { type: "string" }, apiKey: { type: "string" }, email: { type: "string" } } } } },
+        },
+        responses: { "200": { description: "Payment verified on-chain; upgraded API key returned" }, "404": { description: "Transaction not found/pending" }, "409": { description: "Hash already claimed" }, "400": { description: "Failed/underpaid/invalid transaction" }, "503": { description: "USDC rail not configured" } },
+      },
+    },
+    "/pay": {
+      get: {
+        summary: "USDC payment desk (add ?format=json for machine-readable address + amounts)",
+        operationId: "payDesk",
+        security: [],
+        parameters: [{ name: "format", in: "query", schema: { type: "string", enum: ["json"] } }],
+        responses: { "200": { description: "Address and amounts (or HTML desk)" }, "503": { description: "USDC rail not configured" } },
       },
     },
     "/health": {

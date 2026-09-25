@@ -25,6 +25,8 @@ import { waitlistRouter } from "./routes/waitlist.js";
 import { adminRouter } from "./routes/admin.js";
 import { adminPageRouter } from "./routes/admin-page.js";
 import { redeemPageRouter } from "./routes/redeem-page.js";
+import { cryptoRouter } from "./routes/crypto.js";
+import { usdcConfigured, USDC_PRICE } from "./services/usdc.js";
 import { LANDING_HTML } from "./generated/landing-html.js";
 import { CONVERT_HTML } from "./generated/convert-html.js";
 import { LLMS_GENERATOR_HTML } from "./generated/llms-generator-html.js";
@@ -55,6 +57,22 @@ app.use(
     maxAge: 86_400,
   }),
 );
+
+// ── Agent upsell middleware: quota-exhausted (402) responses carry a
+// machine-actionable "upgrade" object so AUTONOMOUS agents can self-serve.
+app.use("/scrape", async (c, next) => {
+  await next();
+  if (c.res.status !== 402) return;
+  const body = (await c.res.json()) as Record<string, unknown>;
+  body.upgrade = {
+    checkout: "POST /create-checkout { email, apiKey, plan } (human completes hosted payment)",
+    redeem: "POST /redeem { licenseKey } (license key from Gumroad/other)",
+    crypto: usdcConfigured(c.env)
+      ? `Send ${USDC_PRICE.founding}+ USDC (Base) to ${c.env.BASE_USDC_ADDRESS.trim()} then POST /crypto/claim { txHash } — instant, no human`
+      : "USDC rail not active yet — see GET /pay",
+  };
+  c.res = new Response(JSON.stringify(body), { status: 402, headers: c.res.headers });
+});
 
 // ── Landing page + machine info ─────────────────────────────────────────────
 
@@ -94,6 +112,7 @@ app.get("/api", (c) =>
       convert_tool: "GET /convert (free, no signup)",
       for_agents: "GET /openapi.json · GET /llms.txt · GET /llms-full.txt · GET /robots.txt",
       redeem: "POST /redeem { licenseKey, apiKey? } — Gumroad license activation",
+      crypto: "GET /pay · POST /crypto/claim { txHash } — USDC on Base, autonomous agent payments (active when wallet configured)",
       waitlist: "POST /waitlist { email } · GET /waitlist — founding members (first 25: Pro at Starter price for a year)",
       health: "GET /health",
     },
@@ -116,6 +135,7 @@ app.route("/", redeemPageRouter);  // GET /redeem — customer-facing redemption
 app.route("/", waitlistRouter);
 app.route("/admin", adminRouter);  // routes: /admin/upgrade, /admin/founding (scoped auth middleware)
 app.route("/", adminPageRouter);
+app.route("/", cryptoRouter);  // POST /crypto/claim + GET /pay (USDC on Base)
 app.route("/", checkoutRouter);
 app.route("/", webhookRouter);
 
@@ -218,6 +238,7 @@ export default {
       Promise.all([
         import("./services/gumroad.js").then((m) => m.reverifyAllLicenses(env)),
         import("./services/polar.js").then((m) => m.reverifyAllPolarLicenses(env)),
+        import("./services/usdc.js").then((m) => m.expireUsdcCredits(env)),
       ]),
     );
   },
