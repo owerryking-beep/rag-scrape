@@ -17,6 +17,11 @@ export interface Env {
   PS_PLAN_UNLIMITED: string;
   /** Founding-member Pro-at-Starter-price plan (first 25 only). */
   PS_PLAN_FOUNDING: string;
+  /** USD card plans (charge $9/$19/$49 in true USD; settle to USD domiciliary a/c). */
+  PS_PLAN_STARTER_USD: string;
+  PS_PLAN_PRO_USD: string;
+  PS_PLAN_UNLIMITED_USD: string;
+  PS_PLAN_FOUNDING_USD: string;
   // ── Gumroad license rail (product IDs; "SET_VIA_GUMROAD" = not configured)
   GUMROAD_PRODUCT_STARTER: string;
   GUMROAD_PRODUCT_PRO: string;
@@ -145,6 +150,7 @@ export interface CheckoutRequest {
   apiKey?: string;
   /** Which paid plan to check out (default "pro"). */
   plan?: Plan;
+  currency?: "KES" | "USD";
 }
 
 interface CheckoutOption {

@@ -8,6 +8,7 @@ import type {
 import { createCheckoutSession as lsCreateCheckout } from "../services/lemonsqueezy.js";
 import { createCheckoutSession as psCreateCheckout } from "../services/paystack.js";
 import { usdcConfigured, USDC_PRICE } from "../services/usdc.js";
+import { PS_PRICES_USD } from "../services/paystack.js";
 
 export const checkoutRouter = new Hono<HonoEnv>();
 
@@ -43,6 +44,17 @@ checkoutRouter.post("/create-checkout", async (c) => {
         success: false,
         error: { code: "INVALID_EMAIL", message: "Provide a valid email address." },
       },
+      400,
+    );
+  }
+
+  if (
+    body.currency !== undefined &&
+    body.currency !== "KES" &&
+    body.currency !== "USD"
+  ) {
+    return c.json<ErrorResponse>(
+      { success: false, error: { code: "INVALID_CURRENCY", message: "'currency' must be \"KES\" or \"USD\"." } },
       400,
     );
   }
@@ -90,12 +102,19 @@ checkoutRouter.post("/create-checkout", async (c) => {
         claim: { method: "POST", path: "/crypto/claim", body: { txHash: "<transaction hash>", apiKey: body.apiKey ?? "<optional>" } },
       });
     }
+    const currency = body.currency ?? "KES";
     const provider = (c.env.PAYMENT_PROVIDER ?? "").trim().toLowerCase();
     const checkoutUrl =
       provider === "paystack"
-        ? await psCreateCheckout(c.env, body.email, body.apiKey, plan)
+        ? await psCreateCheckout(c.env, body.email, body.apiKey, plan, currency)
         : await lsCreateCheckout(c.env, body.email, body.apiKey, plan);
-    options.push({ type: "hosted_checkout", provider, url: checkoutUrl });
+    options.push({
+      type: "hosted_checkout",
+      provider,
+      currency,
+      amount: currency === "USD" ? PS_PRICES_USD[plan as keyof typeof PS_PRICES_USD] : undefined,
+      url: checkoutUrl,
+    });
     return c.json<CheckoutResponse>({ success: true, checkoutUrl, options }, 200);
   } catch (err) {
     console.error("checkout error:", err);

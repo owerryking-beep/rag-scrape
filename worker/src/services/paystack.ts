@@ -26,7 +26,24 @@ export const PS_PRICES_KES: Record<Plan, number> = {
   founding: 1_200, // Pro tier at Starter price — founding-member campaign
 };
 
-function planCodeFor(env: Env, plan: Plan): string {
+/** USD card prices (whole USD; Paystack charges subunits ×100). */
+export const PS_PRICES_USD: Record<Plan, number> = {
+  starter: 9,
+  pro: 19,
+  unlimited: 49,
+  founding: 9, // founding = Pro tier at Starter price, in USD too
+};
+
+function planCodeFor(env: Env, plan: Plan, currency: "KES" | "USD" = "KES"): string {
+  if (currency === "USD") {
+    const usdCode =
+      plan === "starter" ? env.PS_PLAN_STARTER_USD :
+      plan === "pro" ? env.PS_PLAN_PRO_USD :
+      plan === "unlimited" ? env.PS_PLAN_UNLIMITED_USD :
+      env.PS_PLAN_FOUNDING_USD;
+    // USD plans used only when actually configured; otherwise fall back to KES.
+    if (usdCode && !usdCode.startsWith("SET_VIA")) return usdCode;
+  }
   const code =
     plan === "starter"
       ? env.PS_PLAN_STARTER
@@ -79,9 +96,11 @@ export async function createCheckoutSession(
   email: string,
   existingApiKey?: string,
   plan: Plan = "pro",
+  currency: "KES" | "USD" = "KES",
 ): Promise<string> {
   const apiKey = existingApiKey ?? generateApiKey();
-  const planCode = planCodeFor(env, plan);
+  const planCode = planCodeFor(env, plan, currency);
+  const effectiveCurrency: "KES" | "USD" = planCode.includes("USD") || currency === "USD" ? (planCodeFor(env, plan, "USD") === planCode ? "USD" : "KES") : "KES";
 
   const res = await fetch(`${PS_API}/transaction/initialize`, {
     method: "POST",
@@ -92,9 +111,10 @@ export async function createCheckoutSession(
     body: JSON.stringify({
       email,
       plan: planCode,
+      currency: effectiveCurrency,
       callback_url: `${env.CHECKOUT_SUCCESS_URL}&key=${apiKey}`,
       cancel_action: env.CHECKOUT_CANCEL_URL,
-      metadata: { api_key: apiKey, email, plan },
+      metadata: { api_key: apiKey, email, plan, currency: effectiveCurrency },
     }),
   });
 
