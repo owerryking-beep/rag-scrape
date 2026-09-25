@@ -28,10 +28,10 @@ CHECKOUT_CANCEL_URL = "https://rag-scrape-api.owerryking.workers.dev/?checkout=c
 # Lemon Squeezy code stays available as an alternative provider.
 PAYMENT_PROVIDER = "paystack"
 # Plan codes (created via the Paystack API, test mode).
-PS_PLAN_STARTER = "PLN_c59t4737wkp9vym"     # KES 1,200/mo
-PS_PLAN_PRO = "PLN_j271nif737eiglu"         # KES 2,500/mo
-PS_PLAN_UNLIMITED = "PLN_wmbez34u3xsflgh"   # KES 6,500/mo
-PS_PLAN_FOUNDING = "PLN_5irjovz3jv6ab5i"    # Pro tier at KES 1,200/mo — first 25 only
+PS_PLAN_STARTER = "PLN_9hdfrzgc5c483c2"     # LIVE KES 1,200/mo
+PS_PLAN_PRO = "PLN_hiyp0mhcjrh9ba1"         # LIVE KES 2,500/mo
+PS_PLAN_UNLIMITED = "PLN_ou8si4ta7ftl5ob"   # LIVE KES 6,500/mo
+PS_PLAN_FOUNDING = "PLN_48ae4nv4jwvomet"    # LIVE Pro tier at KES 1,200/mo — first 25 only
 PS_PLAN_STARTER_USD = "SET_VIA_GOLIVE"       # $9/mo USD card plan (create at go-live)
 PS_PLAN_PRO_USD = "SET_VIA_GOLIVE"           # $19/mo
 PS_PLAN_UNLIMITED_USD = "SET_VIA_GOLIVE"     # $49/mo

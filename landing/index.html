@@ -90,7 +90,7 @@
       </form>
       <p class="text-xs text-green-300" x-show="wMsg" x-text="wMsg"></p>
       <button x-show="wDone" x-cloak @click="wBusy=true;fetch(API + '/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:wEmail,plan:'founding',currency:'KES'})}).then(r=>r.json()).then(d=>{if(d.success){window.location=d.checkoutUrl}else{wBusy=false;wMsg=(d.error&&d.error.message)||'Checkout failed, please retry'}})" :disabled="wBusy" class="px-4 py-1.5 bg-green-500 hover:bg-green-400 rounded-lg text-sm font-semibold text-white whitespace-nowrap transition" x-text="wBusy ? 'Opening checkout…' : 'Pay with M-Pesa'"></button>
-      <button x-show="wDone" x-cloak @click="wBusy=true;fetch(API + '/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:wEmail,plan:'founding',currency:'USD'})}).then(r=>r.json()).then(d=>{if(d.success){window.location=d.checkoutUrl}else{wBusy=false;wMsg=(d.error&&d.error.message)||'Checkout failed, please retry'}})" :disabled="wBusy" class="px-4 py-1.5 bg-blue-500 hover:bg-blue-400 rounded-lg text-sm font-semibold text-white whitespace-nowrap transition" x-text="wBusy ? 'Opening checkout…' : 'Pay by card — $9/mo'"></button>
+      <!-- USD card button: re-enable when Paystack USD plans exist (domiciliary a/c + intl enabled) -->
     </div>
   </div>
 

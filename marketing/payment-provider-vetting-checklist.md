@@ -57,3 +57,8 @@ fees (CCBill: $950/yr Visa + $500/yr MC + rolling reserve holds). Wrong species
 for us: we are low-risk SaaS + Kenya individual, not a spicy US company.
 FIELD GUIDE COMPLETE — four species exist: MoRs, local gateways, crypto doors,
 high-risk brokers/scams. Bench has the best of species 1-3. Research phase DONE.
+
+FINAL DECISION (2026-09): PAYSTACK = the only ACTIVE rail (user's call).
+All other rails = dormant insurance code. No further user actions on Gumroad,
+Dodo, USDC wallets, Polar, Grey unless user reopens. M-Pesa = KES payment
+channel + optional KES settlement; never USD (domiciliary bank owns USD leg).
