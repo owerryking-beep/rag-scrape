@@ -24,3 +24,14 @@ Code already committed & waiting for this deploy:
 - banner dual buttons (Pay with M-Pesa / Pay by card $9) · 4ca8e9f
 - dual-currency Paystack (PS_PLAN_*_USD env placeholders; currency param) · 81d9a12
 - agent-rail + 402 upsell + docs · 8b341c9 (77/77 tests)
+
+STATUS UPDATE (go-live day):
+✅ LIVE KES plans created + wired: founding PLN_48ae4nv4jwvomet · starter
+   PLN_9hdfrzgc5c483c2 · pro PLN_hiyp0mhcjrh9ba1 · unlimited PLN_ou8si4ta7ftl5ob
+✅ sk_live installed as PAYSTACK_SECRET_KEY · deploys 99e5817c/117d61e
+✅ Live checkout verified (checkout.paystack.com, live mode)
+⏸️ USD: Paystack rejected plan creation ("USD not a supported currency") —
+   needs intl enabled + domiciliary a/c, THEN: create 4 USD plans + un-hide
+   banner card button (marker comment sits in landing/index.html).
+⏳ USER: webhook URL paste · KES 1,200 self-test → refund · revoke GitHub PAT ·
+   RagBot Make.com check.
