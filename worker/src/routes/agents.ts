@@ -135,7 +135,7 @@ const LLMS_FULL = [
   "",
   "## POST /create-checkout",
   "",
-  "Payment options for upgrading (Starter $9 / Pro $19 / Unlimited $49 / Founding = Pro limits at $9). Body: {email, apiKey?, plan?}. Response: {success:true, checkoutUrl, options[]}. options include crypto_usdc (autonomous — no human) when active, and hosted_checkout (a human completes card payment).",
+  "Payment options for upgrading (Founding = Pro limits at $9). Body: {email, apiKey?, plan?, currency?} — currency: \"KES\" (default; M-Pesa + local) or \"USD\" (true-USD card checkout). Response: {success:true, checkoutUrl, options[]}. options include crypto_usdc (autonomous — no human) when active, and hosted_checkout (a human completes card payment).",
   "",
   "## Autonomous payment (USDC on Base) — for AI agents",
   "",
