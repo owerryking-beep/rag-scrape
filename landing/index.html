@@ -81,7 +81,7 @@
     </div>
   </nav>
   <!-- ─── Founding members strip ─────────────────────────────────────── -->
-  <div x-data="{wEmail:'',wMsg:'',wDone:false}" class="bg-brand-600/10 border-b border-brand-500/20 px-6 py-4">
+  <div x-data="{wEmail:'',wMsg:'',wDone:false,wBusy:false}" class="bg-brand-600/10 border-b border-brand-500/20 px-6 py-4">
     <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-3">
       <p class="text-sm text-brand-200 text-center sm:text-left">🏁 <strong>Founding members:</strong> the first 25 subscribers lock <strong>Pro at $9/mo for a year</strong>.</p>
       <form class="flex gap-2" @submit.prevent="fetch(API + '/waitlist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:wEmail})}).then(r=>r.json()).then(d=>{wDone=d.success; wMsg=d.message || (d.error && d.error.message) || ''})">
@@ -89,6 +89,7 @@
         <button type="submit" class="px-4 py-1.5 bg-brand-600 hover:bg-brand-500 rounded-lg text-sm font-medium text-white whitespace-nowrap transition" x-text="wDone ? 'On the list ✓' : 'Claim a spot'"></button>
       </form>
       <p class="text-xs text-green-300" x-show="wMsg" x-text="wMsg"></p>
+      <button x-show="wDone" x-cloak @click="wBusy=true;fetch(API + '/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:wEmail,plan:'founding'})}).then(r=>r.json()).then(d=>{if(d.success){window.location=d.checkoutUrl}else{wBusy=false;wMsg=(d.error&&d.error.message)||'Checkout failed, please retry'}})" :disabled="wBusy" class="px-4 py-1.5 bg-green-500 hover:bg-green-400 rounded-lg text-sm font-semibold text-white whitespace-nowrap transition" x-text="wBusy ? 'Opening checkout…' : 'Pay now — activate instantly'"></button>
     </div>
   </div>
 

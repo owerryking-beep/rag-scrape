@@ -40,3 +40,20 @@ GUMROAD PAYOUT ROUTES (Kenya) — decided 2026-09
 NEVER: Gumroad→crypto (no such payout; don't bridge rails).
 Notes: $10 min payout (first sale rolls a week — normal). Gumroad cut per $9
 founding seat ≈ $1.96 → $7.04 balance before payout-route fees.
+
+FLUTTERWAVE — evaluated 2026-09: PARKED (needs registered business)
+- Real unicorn, scam-filter pass. M-Pesa 1.4% (best), 35-country pan-African rail.
+- BLOCKER for us: Kenya merchant KYC requires Business Registration Cert +
+  KRA PIN + company resolution letter → cannot onboard as individual.
+- Caution: $55M frozen by Kenya ARA 2022-24 (cleared, funds returned; was
+  operating without CBK license) — poster child for multi-rail architecture.
+- TRIGGER to revisit: day we register a business name (eCitizen ~KES 1,000)
+  AND get pan-African customer demand (NG/GH/FR-lafricaine).
+
+SPECIES 4 — HIGH-RISK BROKERS: PaymentCloud, eMerchantBroker, CCBill (2026-09: BIN)
+US-centric ISOs for businesses REJECTED by Stripe (adult/CBD/gambling). Demand
+MORE KYC than Paystack (bank statements, SSN/EIN, 3-mo financials) + reserves +
+fees (CCBill: $950/yr Visa + $500/yr MC + rolling reserve holds). Wrong species
+for us: we are low-risk SaaS + Kenya individual, not a spicy US company.
+FIELD GUIDE COMPLETE — four species exist: MoRs, local gateways, crypto doors,
+high-risk brokers/scams. Bench has the best of species 1-3. Research phase DONE.
