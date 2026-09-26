@@ -172,6 +172,7 @@ export async function applyNwPayment(
   if (await env.API_KEYS.get(claimKey)) return { handled: false, message: "Already processed." };
 
   let payment = await fetchPayment(env, paymentId);
+  if (payment && payment.payment_status === undefined) payment = null; // blocked/invalid API response (e.g. IP-whitelist 403)
   if (!payment && fallback) payment = fallback; // API blocked → trust the signed payload
   if (!payment) return { handled: false, message: "Payment not found at NOWPayments." };
   if ((payment.payment_status ?? "") !== "finished") {
