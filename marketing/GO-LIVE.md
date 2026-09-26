@@ -35,3 +35,14 @@ STATUS UPDATE (go-live day):
    banner card button (marker comment sits in landing/index.html).
 ⏳ USER: webhook URL paste · KES 1,200 self-test → refund · revoke GitHub PAT ·
    RagBot Make.com check.
+
+
+CRYPTO RAILS STATUS (agent-rail day):
+✅ AGENT RAIL LIVE: BASE_USDC_ADDRESS=0xec0fc774487b1be98f42cf556322946982bdf131
+   (Base). /pay + /crypto/claim verified against real Base RPC. Zero platform, 0%.
+🟡 CoinRemitter (hosted page for humans): API key JENKDZG-… VALID format; API
+   PASSWORD still missing (the UUID user sent = NOT the password). User must
+   paste wallet API password → then build /v1 invoice+IPN (api.coinremitter.com/v1,
+   headers x-api-key + x-api-password).
+🟡 NOWPayments: IPN secret installed; real API key STILL missing (UUID was
+   CoinRemitter's). Optional — CoinRemitter covers hosted-page role.
