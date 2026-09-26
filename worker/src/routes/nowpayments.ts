@@ -36,9 +36,10 @@ nowpaymentsRouter.post("/nowpayments/ipn", async (c) => {
   const raw = await c.req.text();
   const sig = c.req.header("x-nowpayments-sig") ?? "";
   let paymentId = "";
+  let parsedBody: { payment_id?: number | string; payment_status?: string; price_amount?: number; order_id?: string; invoice_id?: string | number } | undefined;
   try {
-    const parsed = JSON.parse(raw) as { payment_id?: number | string };
-    paymentId = String(parsed.payment_id ?? "");
+    parsedBody = JSON.parse(raw) as typeof parsedBody;
+    paymentId = String(parsedBody?.payment_id ?? "");
   } catch {
     /* handled below */
   }
@@ -48,7 +49,7 @@ nowpaymentsRouter.post("/nowpayments/ipn", async (c) => {
   if (!paymentId || !sigOk) {
     return c.json<ErrorResponse>({ success: false, error: { code: "BAD_SIGNATURE", message: "Invalid or missing x-nowpayments-sig." } }, 403);
   }
-  const result = await applyNwPayment(c.env, paymentId);
+  const result = await applyNwPayment(c.env, paymentId, parsedBody);
   // Always 200 for recognized events so NOWPayments stops retrying.
   return c.json({ success: true, handled: result.handled, message: result.message });
 });

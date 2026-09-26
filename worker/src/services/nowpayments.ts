@@ -164,11 +164,15 @@ async function upgradeWithCredit(
 export async function applyNwPayment(
   env: Env,
   paymentId: string,
+  // Signed IPN payload — used as fallback when the API re-check is blocked
+  // (e.g. account-level IP whitelist). Never used unless the HMAC already passed.
+  fallback?: { payment_status?: string; price_amount?: number; order_id?: string; invoice_id?: string | number },
 ): Promise<{ handled: boolean; message: string }> {
   const claimKey = `nwp-claim:${paymentId}`;
   if (await env.API_KEYS.get(claimKey)) return { handled: false, message: "Already processed." };
 
-  const payment = await fetchPayment(env, paymentId);
+  let payment = await fetchPayment(env, paymentId);
+  if (!payment && fallback) payment = fallback; // API blocked → trust the signed payload
   if (!payment) return { handled: false, message: "Payment not found at NOWPayments." };
   if ((payment.payment_status ?? "") !== "finished") {
     return { handled: false, message: `Payment status is '${payment.payment_status}', not finished.` };

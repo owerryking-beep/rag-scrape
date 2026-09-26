@@ -35,6 +35,8 @@ export interface Env {
   /** NOWPayments hosted crypto checkout (API key + IPN secret). */
   NW_API_KEY: string;
   NW_IPN_SECRET: string;
+  /** Optional: dashboard-made NOWPayments payment link (works even with API IP-whitelist on). */
+  NW_PAYMENT_LINK_FOUNDING: string;
   POLAR_BENEFIT_STARTER: string;
   POLAR_BENEFIT_PRO: string;
   POLAR_BENEFIT_UNLIMITED: string;

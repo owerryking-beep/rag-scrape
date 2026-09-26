@@ -64,3 +64,17 @@ test("applyNwPayment: unpaid or underpaid statuses never upgrade", async () => {
   globalThis.fetch = (async () => ({ json: async () => ({ payment_id: 57, payment_status: "finished", price_amount: 3, invoice_id: "INV2" }) })) as unknown as typeof fetch;
   assert.equal((await applyNwPayment(env, "57")).handled, false);
 });
+
+
+test("applyNwPayment: API-blocked fallback uses SIGNED ipn payload", async () => {
+  const env = mockEnv();
+  await env.API_KEYS.put("ninv:INV9", JSON.stringify({ plan: "pro", apiKey: "", email: "h@x.io" }));
+  // Simulate API being IP-blocked: fetch returns garbage/403 json with no data.
+  globalThis.fetch = (async () => ({ json: async () => ({ status: false, statusCode: 403 }) })) as unknown as typeof fetch;
+  const res = await applyNwPayment(env, "77", {
+    payment_status: "finished", price_amount: 19, invoice_id: "INV9",
+  });
+  assert.equal(res.handled, true);
+  const replay = await applyNwPayment(env, "77", { payment_status: "finished" });
+  assert.equal(replay.handled, false);
+});
