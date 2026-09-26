@@ -47,7 +47,7 @@ POLAR_BENEFIT_STARTER = "SET_VIA_POLAR"
 POLAR_BENEFIT_PRO = "SET_VIA_POLAR"
 POLAR_BENEFIT_UNLIMITED = "SET_VIA_POLAR"
 POLAR_BENEFIT_FOUNDING = "SET_VIA_POLAR"
-BASE_USDC_ADDRESS = "SET_VIA_WALLET"
+BASE_USDC_ADDRESS = "0xec0fc774487b1be98f42cf556322946982bdf131"  # agent USDC rail (Base) — public by design
 
 # ── Lemon Squeezy (dormant alternative provider) ─────────────────────────────
 # Secrets: LS_API_KEY, LS_WEBHOOK_SECRET (wrangler secret put …).

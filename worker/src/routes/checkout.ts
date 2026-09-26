@@ -9,6 +9,7 @@ import { createCheckoutSession as lsCreateCheckout } from "../services/lemonsque
 import { createCheckoutSession as psCreateCheckout } from "../services/paystack.js";
 import { usdcConfigured, USDC_PRICE } from "../services/usdc.js";
 import { PS_PRICES_USD } from "../services/paystack.js";
+import { nowpaymentsConfigured } from "../services/nowpayments.js";
 
 export const checkoutRouter = new Hono<HonoEnv>();
 
@@ -115,6 +116,9 @@ checkoutRouter.post("/create-checkout", async (c) => {
       amount: currency === "USD" ? PS_PRICES_USD[plan as keyof typeof PS_PRICES_USD] : undefined,
       url: checkoutUrl,
     });
+    if (nowpaymentsConfigured(c.env)) {
+      options.push({ type: "crypto_hosted", provider: "nowpayments", create: "POST /crypto-checkout", body: { plan, email: body.email, apiKey: body.apiKey } });
+    }
     return c.json<CheckoutResponse>({ success: true, checkoutUrl, options }, 200);
   } catch (err) {
     console.error("checkout error:", err);

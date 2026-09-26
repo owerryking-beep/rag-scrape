@@ -8,6 +8,7 @@
 import { Hono } from "hono";
 import type { HonoEnv } from "../types.js";
 import { usdcConfigured } from "../services/usdc.js";
+import { nowpaymentsConfigured } from "../services/nowpayments.js";
 
 export const agentRouter = new Hono<HonoEnv>();
 
@@ -76,10 +77,20 @@ const LLMS_TXT = [
   "Upgrade options: POST /create-checkout {email, apiKey?, plan?} (hosted checkout) · POST /redeem {licenseKey} · {{USDC_SECTION}}",
 ].join("\n");
 
-const usdcSection = (env: HonoEnv["Bindings"]): string =>
-  usdcConfigured(env)
-    ? `Autonomous payment (no human): send USDC on Base — 9 = Founding (Pro limits) / 19 = Pro / 49 = Unlimited, 31 days each. Get address: GET /pay?format=json. Then POST /crypto/claim {"txHash":"0x..."} → verified on-chain, upgraded key instantly.`
-    : `USDC rail not active yet — upgrade via POST /create-checkout (hosted checkout, human pays) or POST /redeem {licenseKey}.`;
+const usdcSection = (env: HonoEnv["Bindings"]): string => {
+  const parts: string[] = [];
+  parts.push(
+    usdcConfigured(env)
+      ? `Autonomous payment (no human): send USDC on Base — 9 = Founding (Pro limits) / 19 = Pro / 49 = Unlimited, 31 days each. Get address: GET /pay?format=json. Then POST /crypto/claim {"txHash":"0x..."} → verified on-chain, upgraded key instantly.`
+      : `Raw-wallet USDC rail not active yet.`,
+  );
+  parts.push(
+    nowpaymentsConfigured(env)
+      ? `Hosted crypto checkout (no signup, any coin): POST /crypto-checkout {plan, email?, apiKey?} → invoiceUrl.`
+      : `Hosted crypto checkout not active yet.`,
+  );
+  return parts.join(" ");
+};
 
 agentRouter.get("/llms.txt", (c) => {
   c.header("Cache-Control", "public, max-age=3600");

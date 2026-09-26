@@ -32,6 +32,9 @@ export interface Env {
   POLAR_ORG_ID: string;
   /** USDC rail: owner wallet address on Base (agents pay crypto, no third party). */
   BASE_USDC_ADDRESS: string;
+  /** NOWPayments hosted crypto checkout (API key + IPN secret). */
+  NW_API_KEY: string;
+  NW_IPN_SECRET: string;
   POLAR_BENEFIT_STARTER: string;
   POLAR_BENEFIT_PRO: string;
   POLAR_BENEFIT_UNLIMITED: string;
