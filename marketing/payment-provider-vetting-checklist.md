@@ -62,3 +62,9 @@ FINAL DECISION (2026-09): PAYSTACK = the only ACTIVE rail (user's call).
 All other rails = dormant insurance code. No further user actions on Gumroad,
 Dodo, USDC wallets, Polar, Grey unless user reopens. M-Pesa = KES payment
 channel + optional KES settlement; never USD (domiciliary bank owns USD leg).
+
+USER PIVOT (go-live day): crypto rails PREFERRED over Paystack.
+- Paystack stays LIVE but idle-cost-zero as the KES door (1.5% only on real sales).
+- Primary push: own-wallet USDC-on-Base rail (already built, dormant — needs
+  user's 0x Base address only) + optional CoinRemitter hosted page (0.23%, no KYC).
+- Never: fiat-mode NOWPayments, Cryptomus, nexapay family.
