@@ -46,3 +46,19 @@ CRYPTO RAILS STATUS (agent-rail day):
    headers x-api-key + x-api-password).
 🟡 NOWPayments: IPN secret installed; real API key STILL missing (UUID was
    CoinRemitter's). Optional — CoinRemitter covers hosted-page role.
+
+
+═══════════════════════════════════════════════════
+🏆 PAYMENT INFRASTRUCTURE: COMPLETE (2026-09-26, ~14:00 EAT)
+═══════════════════════════════════════════════════
+✅ Agent USDC rail: LIVE, self-tested ($9 real, on-chain verified)
+✅ NOWPayments hosted: LIVE, self-tested end-to-end (invoice → payment →
+   signed IPN → key upgrade). API key DBCZGHH-… (invoice-creation works
+   despite account IP whitelist; signed-IPN fallback covers the rest)
+✅ Payout wallet 0xec0f…df131 (Base) confirmed · USDC/USDT coins enabled
+✅ Paystack KES: live + idle (webhook paste + KES self-test optional, pending)
+→ ERA OVER. Remaining work is DISTRIBUTION ONLY:
+   1. RagBot fix (Make.com → History — the only broken machine left)
+   2. GitHub PAT revoke (all pushed through 3dc85c7)
+   3. Launch posts: Reddit/Quora this weekend · Show HN Tue Sep 30 13:00-16:00 EAT
+   4. First stranger pays → domain purchase trigger (~$50 rule)
